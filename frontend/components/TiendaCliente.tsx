@@ -13,10 +13,12 @@ export default function TiendaCliente({
   config,
   productos,
   categorias,
+  titulo = "Tienda",
 }: {
   config: Config;
   productos: ProductoCard[];
   categorias: Categoria[];
+  titulo?: string;
 }) {
   const [detalle, setDetalle] = useState<ProductoCard | null>(null);
   const [lista, setLista] = useState<ProductoCard[]>(productos);
@@ -54,7 +56,7 @@ export default function TiendaCliente({
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="p-6 max-w-7xl mx-auto py-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Tienda</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">{titulo}</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
         <div>
