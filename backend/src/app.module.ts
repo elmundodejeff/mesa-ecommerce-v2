@@ -11,6 +11,7 @@ import { SectionsModule } from './modules/sections/sections.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { DiscountsModule } from './modules/discounts/discounts.module';
 import { ContentModule } from './modules/content/content.module';
+import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ContentModule } from './modules/content/content.module';
     OrdersModule,
     DiscountsModule,
     ContentModule,
+    LoyaltyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

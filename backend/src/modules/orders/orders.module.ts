@@ -3,9 +3,10 @@ import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { OrdersRepository } from './orders.repository';
 import { DiscountsModule } from '../discounts/discounts.module';
+import { LoyaltyModule } from '../loyalty/loyalty.module';
 
 @Module({
-  imports: [DiscountsModule],
+  imports: [DiscountsModule, LoyaltyModule],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersRepository],
 })

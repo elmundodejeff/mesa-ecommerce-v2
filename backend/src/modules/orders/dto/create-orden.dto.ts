@@ -64,4 +64,9 @@ export class CreateOrdenDto {
   @IsOptional()
   @IsString()
   codigo?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  puntosAUsar?: number;
 }

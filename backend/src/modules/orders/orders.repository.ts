@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma.service';
 import { DiscountsService } from '../discounts/discounts.service';
+import { LoyaltyService } from '../loyalty/loyalty.service';
 
 interface ItemInput {
   productoId: number;
@@ -11,6 +12,7 @@ interface CrearOrdenInput {
   items: ItemInput[];
   userId?: string;
   codigo?: string;
+  puntosAUsar?: number;
   nombreEnvio?: string;
   direccionEnvio?: string;
   ciudadEnvio?: string;
@@ -27,6 +29,7 @@ export class OrdersRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly discounts: DiscountsService,
+    private readonly loyalty: LoyaltyService,
   ) {}
 
   findAll() {
@@ -45,13 +48,13 @@ export class OrdersRepository {
 
   async crearOrden(input: CrearOrdenInput) {
     return this.prisma.$transaction(async (tx) => {
-      // 1. Traer productos
+      // 1. Productos
       const ids = input.items.map((i) => i.productoId);
       const productos = await tx.producto.findMany({
         where: { id: { in: ids } },
       });
 
-      // 2. Validar stock, calcular subtotal, armar items
+      // 2. Stock, subtotal, items
       let subtotal = 0;
       const itemsData: {
         productoId: number;
@@ -86,7 +89,7 @@ export class OrdersRepository {
         });
       }
 
-      // 3. Aplicar codigo de descuento (si viene). Invalido -> se ignora con aviso.
+      // 3. Descuento por codigo
       let descuentoMonto = 0;
       let descuentoCodigo: string | null = null;
       let avisoDescuento: string | null = null;
@@ -94,18 +97,12 @@ export class OrdersRepository {
       if (input.codigo) {
         const v = await this.discounts.validar(input.codigo, input.userId);
         if (v.valido) {
-          if (v.tipo === 'porcentaje') {
-            descuentoMonto = Math.round((subtotal * (v.valor ?? 0)) / 100);
-          } else {
-            descuentoMonto = v.valor ?? 0;
-          }
-          // No dejar el total negativo
-          if (descuentoMonto > subtotal) {
-            descuentoMonto = subtotal;
-          }
+          descuentoMonto =
+            v.tipo === 'porcentaje'
+              ? Math.round((subtotal * (v.valor ?? 0)) / 100)
+              : (v.valor ?? 0);
+          if (descuentoMonto > subtotal) descuentoMonto = subtotal;
           descuentoCodigo = input.codigo;
-
-          // Incrementar usos DENTRO de la transaccion (evita carrera)
           await tx.codigoDescuento.update({
             where: { id: v.codigoId },
             data: { usos: { increment: 1 } },
@@ -115,9 +112,37 @@ export class OrdersRepository {
         }
       }
 
-      const total = subtotal - descuentoMonto;
+      // total tras descuento
+      let total = subtotal - descuentoMonto;
 
-      // 4. Descontar stock
+      // 4. Canje de puntos (solo logueados). 1 punto = $1.
+      let puntosUsados = 0;
+      let avisoPuntos: string | null = null;
+
+      if (input.puntosAUsar && input.puntosAUsar > 0) {
+        if (!input.userId) {
+          avisoPuntos = 'Debes iniciar sesion para usar puntos';
+        } else {
+          const saldo = await this.loyalty.saldo(input.userId);
+          if (input.puntosAUsar > saldo) {
+            avisoPuntos = `Saldo insuficiente (tienes ${saldo} puntos)`;
+          } else {
+            // No canjear mas que el total
+            puntosUsados = Math.min(input.puntosAUsar, total);
+            total -= puntosUsados;
+            // Registrar movimiento negativo
+            await tx.movimientoPuntos.create({
+              data: {
+                userId: input.userId,
+                cantidad: -puntosUsados,
+                tipo: 'usado',
+              },
+            });
+          }
+        }
+      }
+
+      // 5. Descontar stock
       for (const item of input.items) {
         await tx.producto.update({
           where: { id: item.productoId },
@@ -125,12 +150,13 @@ export class OrdersRepository {
         });
       }
 
-      // 5. Crear orden
+      // 6. Crear orden
       const orden = await tx.orden.create({
         data: {
           total,
           descuentoMonto,
           descuentoCodigo,
+          puntosUsados,
           userId: input.userId,
           nombreEnvio: input.nombreEnvio,
           direccionEnvio: input.direccionEnvio,
@@ -146,8 +172,36 @@ export class OrdersRepository {
         include: { items: true },
       });
 
-      // Adjuntar aviso (no se persiste, solo va en la respuesta)
-      return { ...orden, subtotal, avisoDescuento };
+      // 7. Acumular puntos (solo logueados): % del total final
+      let puntosGanados = 0;
+      if (input.userId) {
+        const config = await tx.config.findUnique({ where: { id: 1 } });
+        const pct = config?.porcentajePuntosGlobal ?? 5;
+        const dias = config?.diasVencimientoPuntos ?? 365;
+        puntosGanados = Math.round((total * pct) / 100);
+
+        if (puntosGanados > 0) {
+          const vence = new Date();
+          vence.setDate(vence.getDate() + dias);
+          await tx.movimientoPuntos.create({
+            data: {
+              userId: input.userId,
+              cantidad: puntosGanados,
+              tipo: 'ganado',
+              vence,
+              ordenId: orden.id,
+            },
+          });
+        }
+      }
+
+      return {
+        ...orden,
+        subtotal,
+        avisoDescuento,
+        avisoPuntos,
+        puntosGanados,
+      };
     });
   }
 

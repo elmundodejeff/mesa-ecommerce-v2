@@ -13,12 +13,14 @@ import { OrdersService } from './orders.service';
 import { CreateOrdenDto } from './dto/create-orden.dto';
 import { UpdateEstadoDto } from './dto/update-estado.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { OptionalJwtGuard } from '../auth/optional-jwt.guard';
 
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly service: OrdersService) {}
 
-  // Checkout publico: si viene token lo asocia, si no, orden invitado
+  // Checkout: guard opcional. Si viene token, asocia userId y activa puntos.
+  @UseGuards(OptionalJwtGuard)
   @Post('checkout')
   checkout(@Body() dto: CreateOrdenDto, @Req() req: any) {
     const userId = req.user?.id;
