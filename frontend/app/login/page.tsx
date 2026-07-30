@@ -3,11 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { guardarToken } from "@/lib/auth";
+import { guardarToken, guardarUsuario } from "@/lib/auth";
 
 interface LoginResp {
   access_token: string;
-  user: { id: string; email: string; rol: string };
+  user: {
+    id: string;
+    email: string;
+    rol: string;
+    nombre: string | null;
+    avatar: string | null;
+  };
 }
 
 export default function LoginPage() {
@@ -27,6 +33,7 @@ export default function LoginPage() {
         body: { email, password },
       });
       guardarToken(data.access_token);
+      guardarUsuario(data.user);
       router.push("/admin");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al iniciar sesion");

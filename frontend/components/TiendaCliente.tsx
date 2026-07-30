@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCarrito } from "@/lib/carrito";
+import { obtenerUsuario, borrarToken } from "@/lib/auth";
+import type { UsuarioSesion } from "@/lib/auth";
 import { api } from "@/lib/api";
 import type { Config } from "@/lib/config";
 import type { Banner, MenuItem, Categoria } from "@/app/page";
@@ -35,6 +37,15 @@ export default function TiendaCliente({
   categorias: Categoria[];
 }) {
   const { agregar, cantidadTotal } = useCarrito();
+  const [usuario, setUsuario] = useState<UsuarioSesion | null>(null);
+  useEffect(() => {
+    setUsuario(obtenerUsuario());
+  }, []);
+  function salir() {
+    borrarToken();
+    setUsuario(null);
+    window.location.reload();
+  }
   const [detalle, setDetalle] = useState<Producto | null>(null);
   const [lista, setLista] = useState<Producto[]>(productos);
   const [texto, setTexto] = useState("");
@@ -78,13 +89,55 @@ export default function TiendaCliente({
         }}
       >
         <h1 className="font-bold text-xl">{config.nombreSitio}</h1>
-        <Link
-          href="/checkout"
-          className="px-4 py-2 rounded font-medium"
-          style={{ backgroundColor: config.colorMarca, color: "#fff" }}
-        >
-          Carrito ({cantidadTotal})
-        </Link>
+        <div className="flex items-center gap-5">
+          <Link
+            href="/checkout"
+            className="px-4 py-2 rounded font-medium inline-flex items-center gap-2"
+            style={{ backgroundColor: config.colorMarca, color: "#fff" }}
+          >
+            &#128722; Carrito ({cantidadTotal})
+          </Link>
+
+          {usuario ? (
+            <div className="flex items-center gap-3">
+              {usuario.rol === "admin" && (
+                <Link href="/admin" className="text-sm font-medium hover:underline">
+                  Admin
+                </Link>
+              )}
+              <div className="flex items-center gap-2">
+                {usuario.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`${API_BASE}${usuario.avatar}`}
+                    alt=""
+                    className="w-8 h-8 rounded-full object-cover border border-white/30"
+                  />
+                ) : (
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                    style={{ backgroundColor: config.colorMarca }}
+                  >
+                    {(usuario.nombre || usuario.email).charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="text-sm">
+                  Hola, {usuario.nombre || usuario.email}
+                </span>
+              </div>
+              <button
+                onClick={salir}
+                className="text-sm hover:underline opacity-80"
+              >
+                Salir
+              </button>
+            </div>
+          ) : (
+            <Link href="/login" className="text-sm font-medium hover:underline">
+              Iniciar sesion
+            </Link>
+          )}
+        </div>
       </header>
 
       {menu.length > 0 && (

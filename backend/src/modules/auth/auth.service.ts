@@ -29,11 +29,23 @@ export class AuthService {
     return this.firmarToken(user);
   }
 
-  private firmarToken(user: { id: string; email: string; rol: string }) {
+  private firmarToken(user: {
+    id: string;
+    email: string;
+    rol: string;
+    nombre?: string | null;
+    avatar?: string | null;
+  }) {
     const payload = { sub: user.id, email: user.email, rol: user.rol };
     return {
       access_token: this.jwt.sign(payload),
-      user: { id: user.id, email: user.email, rol: user.rol },
+      user: {
+        id: user.id,
+        email: user.email,
+        rol: user.rol,
+        nombre: user.nombre ?? null,
+        avatar: user.avatar ?? null,
+      },
     };
   }
 }
