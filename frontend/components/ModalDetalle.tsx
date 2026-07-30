@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useCarrito } from "@/lib/carrito";
 import type { ProductoCard } from "./CardProducto";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -9,13 +10,12 @@ export default function ModalDetalle({
   producto,
   colorMarca,
   onCerrar,
-  onAgregar,
 }: {
   producto: ProductoCard;
   colorMarca: string;
   onCerrar: () => void;
-  onAgregar: () => void;
 }) {
+  const { agregar: agregarCarrito } = useCarrito();
   const [agregado, setAgregado] = useState(false);
   const [imgActual, setImgActual] = useState(0);
   const imagenes = producto.imagenes || [];
@@ -44,7 +44,11 @@ export default function ModalDetalle({
   }, [onCerrar]);
 
   function agregar() {
-    onAgregar();
+    agregarCarrito({
+      productoId: producto.id,
+      nombre: producto.nombre,
+      precio: producto.precio,
+    });
     setAgregado(true);
     setTimeout(() => setAgregado(false), 2000);
   }

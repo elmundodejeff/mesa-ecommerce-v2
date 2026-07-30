@@ -78,7 +78,6 @@ export default function HomeCliente({
           producto={detalle}
           colorMarca={config.colorMarca}
           onCerrar={() => setDetalle(null)}
-          onAgregar={() => {}}
         />
       )}
     </div>

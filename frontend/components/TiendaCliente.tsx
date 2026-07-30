@@ -112,7 +112,6 @@ export default function TiendaCliente({
           producto={detalle}
           colorMarca={config.colorMarca}
           onCerrar={() => setDetalle(null)}
-          onAgregar={() => {}}
         />
       )}
     </div>
