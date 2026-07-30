@@ -14,6 +14,7 @@ import { ContentModule } from './modules/content/content.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { ContactModule } from './modules/contact/contact.module';
+import { StatsModule } from './modules/stats/stats.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ContactModule } from './modules/contact/contact.module';
     LoyaltyModule,
     BlogModule,
     ContactModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

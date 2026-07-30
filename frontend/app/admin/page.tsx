@@ -2,155 +2,109 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 
-interface Producto {
-  id: number;
-  nombre: string;
-  precio: number;
-  stock: number;
-  descripcion: string | null;
+interface Resumen {
+  ventasTotales: number;
+  pedidos: number;
+  usuarios: number;
+  ticketPromedio: number;
 }
 
-export default function AdminProductos() {
-  const [productos, setProductos] = useState<Producto[]>([]);
-  const [nombre, setNombre] = useState("");
-  const [precio, setPrecio] = useState("");
-  const [stock, setStock] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [error, setError] = useState("");
-  const [cargando, setCargando] = useState(false);
+interface Punto {
+  label: string;
+  total: number;
+}
 
-  async function cargar() {
-    try {
-      const data = await api<Producto[]>("/products");
-      setProductos(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cargar");
-    }
-  }
+export default function Dashboard() {
+  const [resumen, setResumen] = useState<Resumen | null>(null);
+  const [porMes, setPorMes] = useState<Punto[]>([]);
+  const [porDia, setPorDia] = useState<Punto[]>([]);
+  const [dias, setDias] = useState(7);
 
   useEffect(() => {
-    cargar();
+    api<Resumen>("/stats/resumen", { auth: true }).then(setResumen).catch(() => {});
+    api<Punto[]>("/stats/ventas-mes", { auth: true }).then(setPorMes).catch(() => {});
   }, []);
 
-  async function crear(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setCargando(true);
-    try {
-      await api("/products", {
-        method: "POST",
-        auth: true,
-        body: {
-          nombre,
-          precio: Number(precio),
-          stock: Number(stock),
-          descripcion: descripcion || undefined,
-        },
-      });
-      setNombre("");
-      setPrecio("");
-      setStock("");
-      setDescripcion("");
-      await cargar();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al crear");
-    } finally {
-      setCargando(false);
-    }
-  }
+  useEffect(() => {
+    api<Punto[]>(`/stats/ventas-dia?dias=${dias}`, { auth: true })
+      .then(setPorDia)
+      .catch(() => {});
+  }, [dias]);
 
-  async function eliminar(id: number) {
-    if (!confirm("Eliminar este producto?")) return;
-    try {
-      await api(`/products/${id}`, { method: "DELETE", auth: true });
-      await cargar();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al eliminar");
-    }
-  }
+  const fmt = (n: number) => `$${n.toLocaleString("es-CL")}`;
 
   return (
-    <div className="space-y-8">
-      <section className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">Nuevo producto</h2>
-        <form onSubmit={crear} className="grid grid-cols-2 gap-4">
-          <input
-            placeholder="Nombre"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            required
-            className="border rounded px-3 py-2"
-          />
-          <input
-            placeholder="Precio"
-            type="number"
-            value={precio}
-            onChange={(e) => setPrecio(e.target.value)}
-            required
-            className="border rounded px-3 py-2"
-          />
-          <input
-            placeholder="Stock"
-            type="number"
-            value={stock}
-            onChange={(e) => setStock(e.target.value)}
-            required
-            className="border rounded px-3 py-2"
-          />
-          <input
-            placeholder="Descripcion (opcional)"
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
-          <div className="col-span-2">
-            {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
-            <button
-              type="submit"
-              disabled={cargando}
-              className="bg-emerald-700 text-white px-6 py-2 rounded hover:bg-emerald-800 disabled:opacity-50"
-            >
-              {cargando ? "Guardando..." : "Crear producto"}
-            </button>
-          </div>
-        </form>
-      </section>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
 
-      <section className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">
-          Productos ({productos.length})
-        </h2>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-left">
-              <th className="py-2">ID</th>
-              <th className="py-2">Nombre</th>
-              <th className="py-2">Precio</th>
-              <th className="py-2">Stock</th>
-              <th className="py-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {productos.map((p) => (
-              <tr key={p.id} className="border-b">
-                <td className="py-2">{p.id}</td>
-                <td className="py-2">{p.nombre}</td>
-                <td className="py-2">${p.precio.toLocaleString("es-CL")}</td>
-                <td className="py-2">{p.stock}</td>
-                <td className="py-2 text-right">
-                  <button
-                    onClick={() => eliminar(p.id)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card titulo="Ventas totales" valor={resumen ? fmt(resumen.ventasTotales) : "..."} />
+        <Card titulo="Pedidos" valor={resumen ? String(resumen.pedidos) : "..."} />
+        <Card titulo="Usuarios" valor={resumen ? String(resumen.usuarios) : "..."} />
+        <Card titulo="Ticket promedio" valor={resumen ? fmt(resumen.ticketPromedio) : "..."} />
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <h2 className="font-semibold text-gray-800 mb-4">Ventas ultimos 6 meses</h2>
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={porMes}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="label" fontSize={12} />
+            <YAxis fontSize={12} tickFormatter={(v) => `$${v / 1000}k`} />
+            <Tooltip formatter={(v: number) => fmt(v)} />
+            <Bar dataKey="total" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-semibold text-gray-800">Ventas por dia</h2>
+          <div className="flex gap-2 text-sm">
+            {[7, 15, 30].map((d) => (
+              <button
+                key={d}
+                onClick={() => setDias(d)}
+                className={`px-3 py-1 rounded-full ${
+                  dias === d ? "bg-purple-600 text-white" : "border text-gray-600"
+                }`}
+              >
+                {d} dias
+              </button>
             ))}
-          </tbody>
-        </table>
-      </section>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={280}>
+          <LineChart data={porDia}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="label" fontSize={12} />
+            <YAxis fontSize={12} tickFormatter={(v) => `$${v / 1000}k`} />
+            <Tooltip formatter={(v: number) => fmt(v)} />
+            <Line type="monotone" dataKey="total" stroke="#7c3aed" strokeWidth={2} dot={{ r: 4 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+function Card({ titulo, valor }: { titulo: string; valor: string }) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+      <p className="text-sm text-gray-500">{titulo}</p>
+      <p className="text-2xl font-bold text-gray-900 mt-1">{valor}</p>
     </div>
   );
 }
