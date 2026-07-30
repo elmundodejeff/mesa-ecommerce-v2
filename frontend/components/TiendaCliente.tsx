@@ -105,7 +105,10 @@ export default function TiendaCliente({
                   Admin
                 </Link>
               )}
-              <div className="flex items-center gap-2">
+              <Link
+                href="/cuenta"
+                className="flex items-center gap-2 hover:opacity-80 transition"
+              >
                 {usuario.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -124,7 +127,7 @@ export default function TiendaCliente({
                 <span className="text-sm">
                   Hola, {usuario.nombre || usuario.email}
                 </span>
-              </div>
+              </Link>
               <button
                 onClick={salir}
                 className="text-sm hover:underline opacity-80"

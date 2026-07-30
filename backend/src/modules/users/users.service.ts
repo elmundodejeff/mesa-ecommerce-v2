@@ -47,4 +47,9 @@ export class UsersService {
       rut: rutNormalizado,
     });
   }
+
+  async actualizarAvatar(id: string, avatar: string) {
+    return this.repo.actualizarAvatar(id, avatar);
+  }
+
 }
