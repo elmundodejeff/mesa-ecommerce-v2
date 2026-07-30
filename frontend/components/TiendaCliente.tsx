@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import CardProducto from "./CardProducto";
 import type { ProductoCard } from "./CardProducto";
 import ModalDetalle from "./ModalDetalle";
+import CarritoLateral from "./CarritoLateral";
 import type { Config } from "@/lib/config";
 import type { Categoria } from "@/app/page";
 
@@ -52,9 +53,11 @@ export default function TiendaCliente({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="p-6 max-w-6xl mx-auto py-10">
+      <main className="p-6 max-w-7xl mx-auto py-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Tienda</h1>
 
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+        <div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-40">
             <label className="block text-xs text-gray-500 mb-1">Buscar</label>
@@ -100,10 +103,13 @@ export default function TiendaCliente({
         </div>
 
         <h2 className="text-xl font-semibold text-gray-700 mb-6">Productos ({lista.length})</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
           {lista.map((p) => (
             <CardProducto key={p.id} producto={p} colorMarca={config.colorMarca} onVer={setDetalle} />
           ))}
+        </div>
+        </div>
+        <CarritoLateral colorMarca={config.colorMarca} />
         </div>
       </main>
 
