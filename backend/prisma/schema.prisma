@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Producto {
+  id          Int              @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  precio      Int
+  stock       Int
+  destacado   Boolean          @default(false)
+  imagenes    ImagenProducto[]
+  categorias  Categoria[]
+  sku         String?          @unique
+  preventa         Boolean   @default(false)
+  fechaLanzamiento DateTime?
+  textoPreventa    String?
+  secciones Seccion[] @relation("ProductoSeccion")
+}
+
+model Orden {
+  id     Int          @id @default(autoincrement())
+  total  Int
+  fecha  DateTime     @default(now())
+  items  OrdenItem[]
+  user   User?        @relation(fields: [userId], references: [id])
+  userId String?
+  estado          String   @default("nuevo")
+  nombreEnvio     String?
+  direccionEnvio  String?
+  ciudadEnvio     String?
+  regionEnvio     String?
+  telefonoEnvio   String?
+  visto           Boolean  @default(false)
+  esRegalo          Boolean  @default(false)
+  regaloDe          String?
+  regaloPara        String?
+  regaloMensaje     String?
+  notaEntrega       String?
+  rutEnvio          String?
+  comunaEnvio       String?
+  codigoPostalEnvio String?
+  puntosUsados    Int @default(0)
+  descuentoMonto  Int @default(0)
+  descuentoCodigo String?
+}
+
+model OrdenItem {
+  id         Int      @id @default(autoincrement())
+  orden      Orden    @relation(fields: [ordenId], references: [id])
+  ordenId    Int
+  productoId Int
+  nombre     String
+  precio     Int
+  cantidad   Int
+}
+
+model User {
+  id            String    @id @default(cuid())
+  nombre        String?
+  email         String    @unique
+  password      String?
+  rol           String    @default("cliente")
+  emailVerified DateTime?
+  telefono      String?
+  rut           String?
+  createdAt     DateTime  @default(now())
+  direcciones   Direccion[]
+  ordenes       Orden[]
+  avatar        String?
+  codigosDescuento CodigoDescuento[]
+  comentarios      Comentario[]
+  activo Boolean @default(true)
+  puntosActivos     Boolean  @default(false)
+  porcentajePuntos  Int?
+  movimientosPuntos MovimientoPuntos[]
+}
+
+model Direccion {
+  id         String  @id @default(cuid())
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  alias      String
+  calle      String
+  ciudad     String
+  region     String
+  esPrincipal Boolean @default(false)
+}
+
+model Config {
+  id          Int      @id @default(1)
+  colorMarca  String   @default("#1d9e75")
+  nombreSitio String   @default("Mesa")
+  logo        String?
+  colorHeader       String   @default("#04342C")
+  colorHeaderTexto  String   @default("#ffffff")
+  fuente String @default("Poppins")
+  contactoCorreo    String?
+  contactoHorario   String?
+  contactoInstagram String?
+  contactoTiktok    String?
+  contactoTelefono  String?
+  contactoDireccion String?
+  preventaActiva Boolean @default(false)
+  tituloPreventa String  @default("Preventa")
+  ordenDestacados Int @default(0)
+  ordenPreventa   Int @default(1)
+  porcentajePuntosGlobal Int @default(5)
+  diasVencimientoPuntos  Int @default(365)
+}
+
+model ImagenProducto {
+  id         Int      @id @default(autoincrement())
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  productoId Int
+  url        String
+  orden      Int      @default(0)
+}
+
+model BannerSlide {
+  id        Int    @id @default(autoincrement())
+  imagen    String
+  titulo    String?
+  subtitulo String?
+  enlace    String?
+  orden     Int    @default(0)
+}
+
+model Contacto {
+  id      Int      @id @default(autoincrement())
+  nombre  String
+  email   String
+  mensaje String
+  fecha   DateTime @default(now())
+  leido   Boolean  @default(false)
+}
+
+model MenuItem {
+  id       Int        @id @default(autoincrement())
+  texto    String
+  enlace   String
+  orden    Int        @default(0)
+  padreId  Int?
+  padre    MenuItem?  @relation("Submenu", fields: [padreId], references: [id], onDelete: Cascade)
+  hijos    MenuItem[] @relation("Submenu")
+}
+
+model CodigoDescuento {
+  id        Int      @id @default(autoincrement())
+  codigo    String   @unique
+  tipo      String
+  valor     Int
+  vigencia  DateTime
+  activo    Boolean  @default(true)
+  creado    DateTime @default(now())
+  maxUsos   Int?
+  usos      Int      @default(0)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+}
+
+model Entrada {
+  id        Int      @id @default(autoincrement())
+  titulo    String
+  contenido String
+  imagen    String?
+  fecha     DateTime @default(now())
+  comentarios Comentario[]
+}
+
+model Avatar {
+  id     Int    @id @default(autoincrement())
+  url    String
+  creado DateTime @default(now())
+}
+
+model Categoria {
+  id        Int        @id @default(autoincrement())
+  nombre    String     @unique
+  productos Producto[]
+}
+
+model Comentario {
+  id         Int      @id @default(autoincrement())
+  contenido  String
+  aprobado   Boolean  @default(false)
+  creado     DateTime @default(now())
+  entrada    Entrada  @relation(fields: [entradaId], references: [id], onDelete: Cascade)
+  entradaId  Int
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+}
+
+model Seccion {
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  orden     Int       @default(0)
+  activa    Boolean   @default(true)
+  productos Producto[] @relation("ProductoSeccion")
+}
+
+model MovimientoPuntos {
+  id       Int       @id @default(autoincrement())
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  cantidad Int
+  tipo     String
+  creado   DateTime  @default(now())
+  vence    DateTime?
+  ordenId  Int?
+}

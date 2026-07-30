@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (NUNCA subir - tienen passwords y secrets)
+.env
+.env.local
+.env*.local
+
+# Builds
+dist/
+.next/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Prisma cliente generado
+**/node_modules/.prisma/
+
+# Sistema
+.DS_Store
+Thumbs.db
