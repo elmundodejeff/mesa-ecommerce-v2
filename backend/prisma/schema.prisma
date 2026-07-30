@@ -113,6 +113,7 @@ model Config {
   ordenPreventa   Int @default(1)
   porcentajePuntosGlobal Int @default(5)
   diasVencimientoPuntos  Int @default(365)
+  sobreNosotros Json?
 }
 
 model ImagenProducto {

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import EditorSobreNosotros from "@/components/EditorSobreNosotros";
+import type { SobreNosotrosData } from "@/components/SobreNosotrosContenido";
 
 interface ConfigData {
   colorMarca: string;
@@ -16,6 +18,7 @@ interface ConfigData {
   contactoTelefono: string | null;
   contactoDireccion: string | null;
   contactoHorario: string | null;
+  sobreNosotros?: SobreNosotrosData;
 }
 
 const FUENTES = ["Poppins", "Roboto", "Inter", "Montserrat", "Lato"];
@@ -191,6 +194,14 @@ export default function AdminConfig() {
       >
         {cargando ? "Guardando..." : "Guardar cambios"}
       </button>
+
+      <section className="bg-white rounded-lg shadow p-6 space-y-4">
+        <h3 className="font-medium text-gray-800">Pagina &quot;Sobre nosotros&quot;</h3>
+        <p className="text-sm text-gray-500">
+          Edita el contenido de la pagina. Tiene su propio boton de guardar.
+        </p>
+        <EditorSobreNosotros inicial={config.sobreNosotros || {}} />
+      </section>
     </div>
   );
 }

@@ -8,7 +8,18 @@ import {
   Body,
   ParseIntPipe,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  Inject,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  STORAGE_PROVIDER,
+} from '../../platform/storage/storage.interface';
+import type { StorageProvider } from '../../platform/storage/storage.interface';
 import { ContentService } from './content.service';
 import { UpdateConfigDto } from './dto/update-config.dto';
 import { CreateBannerDto } from './dto/create-banner.dto';
@@ -19,7 +30,10 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('content')
 export class ContentController {
-  constructor(private readonly service: ContentService) {}
+  constructor(
+    private readonly service: ContentService,
+    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+  ) {}
 
   // --- Config ---
   @Get('config')
@@ -86,4 +100,24 @@ export class ContentController {
   eliminarMenu(@Param('id', ParseIntPipe) id: number) {
     return this.service.eliminarMenu(id);
   }
+
+  // --- Subida de imagenes para contenido ---
+  @UseGuards(JwtAuthGuard)
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('imagen'))
+  async subirImagen(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /^image\/(jpeg|png|webp)$/ }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    const url = await this.storage.save(file, 'contenido');
+    return { url };
+  }
+
 }

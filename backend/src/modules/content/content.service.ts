@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { ConfigRepository } from './repositories/config.repository';
 import { BannerRepository } from './repositories/banner.repository';
 import { MenuRepository } from './repositories/menu.repository';
@@ -22,7 +23,7 @@ export class ContentService {
   }
 
   actualizarConfig(dto: UpdateConfigDto) {
-    return this.config.actualizar(dto);
+    return this.config.actualizar(dto as Prisma.ConfigUpdateInput);
   }
 
   // --- Banners ---

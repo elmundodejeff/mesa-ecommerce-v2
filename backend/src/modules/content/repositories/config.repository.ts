@@ -16,9 +16,17 @@ export class ConfigRepository {
   }
 
   actualizar(data: Prisma.ConfigUpdateInput) {
+    // sobreNosotros es un campo Json: Prisma lo acepta como objeto,
+    // pero hay que asegurar que no llegue como undefined anidado.
+    const limpio: Prisma.ConfigUpdateInput = { ...data };
+    if (limpio.sobreNosotros !== undefined) {
+      limpio.sobreNosotros = JSON.parse(
+        JSON.stringify(limpio.sobreNosotros),
+      );
+    }
     return this.prisma.config.update({
       where: { id: 1 },
-      data,
+      data: limpio,
     });
   }
 }

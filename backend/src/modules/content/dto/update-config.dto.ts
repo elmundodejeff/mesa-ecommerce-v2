@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsBoolean, IsOptional } from 'class-validator';
+import { IsString, IsInt, IsBoolean, IsOptional, IsObject } from 'class-validator';
 
 export class UpdateConfigDto {
   @IsOptional() @IsString() colorMarca?: string;
@@ -19,4 +19,5 @@ export class UpdateConfigDto {
   @IsOptional() @IsInt() ordenPreventa?: number;
   @IsOptional() @IsInt() porcentajePuntosGlobal?: number;
   @IsOptional() @IsInt() diasVencimientoPuntos?: number;
+  @IsOptional() @IsObject() sobreNosotros?: Record<string, unknown>;
 }
