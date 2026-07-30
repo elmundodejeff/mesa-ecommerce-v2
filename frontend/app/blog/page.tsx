@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { getConfig } from "@/lib/config";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import type { MenuItem } from "@/app/page";
 
 interface Entrada {
   id: number;
@@ -21,25 +24,22 @@ async function getEntradas(): Promise<Entrada[]> {
   }
 }
 
+async function getMenu(): Promise<MenuItem[]> {
+  try {
+    const res = await fetch(`${BASE}/content/menu`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 export default async function BlogList() {
-  const [config, entradas] = await Promise.all([getConfig(), getEntradas()]);
+  const [config, entradas, menu] = await Promise.all([getConfig(), getEntradas(), getMenu()]);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header
-        className="px-6 py-4 flex justify-between items-center"
-        style={{
-          backgroundColor: config.colorHeader,
-          color: config.colorHeaderTexto,
-        }}
-      >
-        <Link href="/" className="font-bold text-xl">
-          {config.nombreSitio}
-        </Link>
-        <Link href="/" className="text-sm hover:underline">
-          Volver a la tienda
-        </Link>
-      </header>
+      <Header config={config} menu={menu} />
 
       <main className="p-6 max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Blog</h1>
@@ -77,6 +77,7 @@ export default async function BlogList() {
           </div>
         )}
       </main>
+      <Footer config={config} />
     </div>
   );
 }

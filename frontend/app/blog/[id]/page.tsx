@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { getConfig } from "@/lib/config";
 import ComentarForm from "@/components/ComentarForm";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import type { MenuItem } from "@/app/page";
 
 interface Comentario {
   id: number;
@@ -32,33 +35,31 @@ async function getEntrada(id: string): Promise<Entrada | null> {
   }
 }
 
+async function getMenu(): Promise<MenuItem[]> {
+  try {
+    const res = await fetch(`${BASE}/content/menu`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 export default async function BlogDetail({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [config, entrada] = await Promise.all([
+  const [config, entrada, menu] = await Promise.all([
     getConfig(),
     getEntrada(id),
+    getMenu(),
   ]);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header
-        className="px-6 py-4 flex justify-between items-center"
-        style={{
-          backgroundColor: config.colorHeader,
-          color: config.colorHeaderTexto,
-        }}
-      >
-        <Link href="/" className="font-bold text-xl">
-          {config.nombreSitio}
-        </Link>
-        <Link href="/blog" className="text-sm hover:underline">
-          Volver al blog
-        </Link>
-      </header>
+      <Header config={config} menu={menu} />
 
       <main className="p-6 max-w-3xl mx-auto">
         {!entrada ? (
@@ -114,6 +115,7 @@ export default async function BlogDetail({
           </article>
         )}
       </main>
+      <Footer config={config} />
     </div>
   );
 }

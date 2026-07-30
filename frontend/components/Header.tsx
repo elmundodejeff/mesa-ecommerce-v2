@@ -11,13 +11,6 @@ import type { MenuItem } from "@/app/page";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-const NAV = [
-  { href: "/", label: "Inicio" },
-  { href: "/tienda", label: "Tienda" },
-  { href: "/blog", label: "Blog" },
-  { href: "/contacto", label: "Contacto" },
-];
-
 export default function Header({
   config,
   menu,
@@ -50,29 +43,40 @@ export default function Header({
       <div className="flex items-center gap-8">
         <h1 className="font-bold text-xl">{config.nombreSitio}</h1>
         <nav className="hidden md:flex gap-5 text-sm">
-          {NAV.map((n) => {
+          {menu.map((item) => {
             const activo =
-              n.href === "/" ? pathname === "/" : pathname.startsWith(n.href);
+              item.enlace === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.enlace);
+            const tieneHijos = item.hijos && item.hijos.length > 0;
             return (
-              <Link
-                key={n.href}
-                href={n.href}
-                className="hover:opacity-80 transition"
-                style={activo ? { color: config.colorMarca, fontWeight: 600 } : undefined}
-              >
-                {n.label}
-              </Link>
+              <div key={item.id} className="relative group">
+                <Link
+                  href={item.enlace}
+                  className="hover:opacity-80 transition inline-flex items-center gap-1"
+                  style={activo ? { color: config.colorMarca, fontWeight: 600 } : undefined}
+                >
+                  {item.texto}
+                  {tieneHijos && <span className="text-xs opacity-70">&#9662;</span>}
+                </Link>
+                {tieneHijos && (
+                  <div className="absolute left-0 top-full pt-2 hidden group-hover:block z-40">
+                    <div className="bg-white text-gray-800 rounded-lg shadow-xl min-w-44 overflow-hidden">
+                      {item.hijos.map((h) => (
+                        <Link
+                          key={h.id}
+                          href={h.enlace}
+                          className="block px-4 py-2.5 hover:bg-gray-100 border-b last:border-0 text-sm"
+                        >
+                          {h.texto}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
-          {menu.map((item) => (
-            <Link
-              key={item.id}
-              href={item.enlace}
-              className="hover:opacity-80 transition"
-            >
-              {item.texto}
-            </Link>
-          ))}
         </nav>
       </div>
 
