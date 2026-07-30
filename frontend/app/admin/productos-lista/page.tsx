@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api, apiUpload } from "@/lib/api";
 
 interface Rel { id: number; nombre: string; }
+
+interface Imagen { id: number; url: string; orden: number; }
 
 interface Producto {
   id: number;
@@ -14,6 +16,7 @@ interface Producto {
   idioma?: string | null;
   categorias?: Rel[];
   secciones?: Rel[];
+  imagenes?: Imagen[];
 }
 
 const IDIOMAS = ["Español", "Inglés", "Japonés", "Otro"];
@@ -248,6 +251,8 @@ function ModalEditar({
             </div>
           </div>
 
+          <SeccionImagenes producto={producto} onCambio={() => {}} />
+
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button onClick={guardar} disabled={guardando} className="flex-1 bg-emerald-700 text-white py-2 rounded hover:bg-emerald-800 disabled:opacity-50">
@@ -257,6 +262,100 @@ function ModalEditar({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+function SeccionImagenes({
+  producto,
+  onCambio,
+}: {
+  producto: Producto;
+  onCambio: () => void;
+}) {
+  const [imagenes, setImagenes] = useState<Imagen[]>(producto.imagenes || []);
+  const [subiendo, setSubiendo] = useState(false);
+  const [error, setError] = useState("");
+
+  async function refrescar() {
+    try {
+      const actualizado = await api<Producto>(`/products/${producto.id}`);
+      setImagenes(actualizado.imagenes || []);
+      onCambio();
+    } catch {
+      // silencioso: el listado principal se recarga igual al cerrar
+    }
+  }
+
+  async function subir(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setError("");
+    setSubiendo(true);
+    try {
+      const fd = new FormData();
+      Array.from(files).forEach((f) => fd.append("imagenes", f));
+      await apiUpload(`/products/${producto.id}/imagenes`, fd);
+      await refrescar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al subir");
+    } finally {
+      setSubiendo(false);
+      e.target.value = "";
+    }
+  }
+
+  async function borrar(imagenId: number) {
+    if (!confirm("Eliminar esta imagen?")) return;
+    setError("");
+    try {
+      await api(`/products/imagenes/${imagenId}`, { method: "DELETE", auth: true });
+      await refrescar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al borrar");
+    }
+  }
+
+  return (
+    <div>
+      <p className="text-sm font-medium text-gray-700 mb-2">Imagenes</p>
+      {imagenes.length > 0 ? (
+        <div className="grid grid-cols-4 gap-2 mb-3">
+          {imagenes.map((img) => (
+            <div key={img.id} className="relative group">
+              <img
+                src={`${API_BASE}${img.url}`}
+                alt=""
+                className="w-full h-20 object-cover rounded border"
+              />
+              <button
+                type="button"
+                onClick={() => borrar(img.id)}
+                className="absolute top-1 right-1 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                title="Eliminar"
+              >
+                x
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-gray-400 mb-3">Sin imagenes aun.</p>
+      )}
+      <label className="inline-block cursor-pointer text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded border">
+        {subiendo ? "Subiendo..." : "+ Agregar imagenes"}
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          onChange={subir}
+          disabled={subiendo}
+          className="hidden"
+        />
+      </label>
+      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
     </div>
   );
 }

@@ -40,3 +40,33 @@ export async function api<T = unknown>(
 
   return data as T;
 }
+
+// Subida de archivos: usa FormData y NO fija Content-Type
+// (el navegador agrega el multipart/form-data; boundary automaticamente).
+export async function apiUpload<T = unknown>(
+  path: string,
+  formData: FormData,
+  method = 'POST',
+): Promise<T> {
+  const headers: Record<string, string> = {};
+
+  const token = obtenerToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${BASE}${path}`, {
+    method,
+    headers,
+    body: formData,
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    const mensaje = data?.message || `Error ${res.status}`;
+    throw new Error(Array.isArray(mensaje) ? mensaje.join(', ') : mensaje);
+  }
+
+  return data as T;
+}

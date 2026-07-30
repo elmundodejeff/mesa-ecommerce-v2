@@ -111,4 +111,33 @@ export class ProductsRepository {
   remove(id: number) {
     return this.prisma.producto.delete({ where: { id } });
   }
+
+  // ===== Imagenes =====
+
+  // Devuelve el mayor "orden" actual de las imagenes de un producto (-1 si no hay)
+  async maxOrdenImagen(productoId: number): Promise<number> {
+    const ultima = await this.prisma.imagenProducto.findFirst({
+      where: { productoId },
+      orderBy: { orden: "desc" },
+    });
+    return ultima ? ultima.orden : -1;
+  }
+
+  crearImagen(productoId: number, url: string, orden: number) {
+    return this.prisma.imagenProducto.create({
+      data: { productoId, url, orden },
+    });
+  }
+
+  findImagen(imagenId: number) {
+    return this.prisma.imagenProducto.findUnique({
+      where: { id: imagenId },
+    });
+  }
+
+  borrarImagen(imagenId: number) {
+    return this.prisma.imagenProducto.delete({
+      where: { id: imagenId },
+    });
+  }
 }

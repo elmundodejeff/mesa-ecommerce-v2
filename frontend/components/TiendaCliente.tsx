@@ -7,6 +7,8 @@ import { api } from "@/lib/api";
 import type { Config } from "@/lib/config";
 import type { Banner, MenuItem, Categoria } from "@/app/page";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
 interface Producto {
   id: number;
   nombre: string;
@@ -204,6 +206,26 @@ export default function TiendaCliente({
             >
               <button
                 onClick={() => setDetalle(p)}
+                className="aspect-square mb-3 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center"
+              >
+                {p.imagenes && p.imagenes.length > 0 ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`${API_BASE}${p.imagenes[0].url}`}
+                    alt={p.nombre}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform"
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full flex items-center justify-center text-white text-5xl font-bold"
+                    style={{ background: `linear-gradient(135deg, ${config.colorMarca}, ${config.colorMarca}cc)` }}
+                  >
+                    {p.nombre.charAt(0)}
+                  </div>
+                )}
+              </button>
+              <button
+                onClick={() => setDetalle(p)}
                 className="text-left font-semibold text-lg text-gray-900 hover:underline"
               >
                 {p.nombre}
@@ -311,23 +333,46 @@ function ModalDetalle({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="grid grid-cols-1 md:grid-cols-2">
-          {/* Imagen */}
-          <div className="bg-gray-100 aspect-square flex items-center justify-center">
-            {imagenes.length > 0 ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={imagenes[imgActual].url}
-                alt={producto.nombre}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div
-                className="w-full h-full flex items-center justify-center text-white text-7xl font-bold"
-                style={{
-                  background: `linear-gradient(135deg, ${colorMarca}, ${colorMarca}cc)`,
-                }}
-              >
-                {producto.nombre.charAt(0)}
+          {/* Imagen + miniaturas */}
+          <div className="bg-gray-100 flex flex-col">
+            <div className="aspect-square flex items-center justify-center overflow-hidden">
+              {imagenes.length > 0 ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`${API_BASE}${imagenes[imgActual].url}`}
+                  alt={producto.nombre}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center text-white text-7xl font-bold"
+                  style={{
+                    background: `linear-gradient(135deg, ${colorMarca}, ${colorMarca}cc)`,
+                  }}
+                >
+                  {producto.nombre.charAt(0)}
+                </div>
+              )}
+            </div>
+            {imagenes.length > 1 && (
+              <div className="flex gap-2 p-3 overflow-x-auto bg-white">
+                {imagenes.map((img, i) => (
+                  <button
+                    key={img.id}
+                    onClick={() => setImgActual(i)}
+                    className="shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition"
+                    style={{
+                      borderColor: i === imgActual ? colorMarca : "transparent",
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`${API_BASE}${img.url}`}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -431,7 +476,7 @@ function Carrusel({
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={b.imagen}
+          src={`${API_BASE}${b.imagen}`}
           alt={b.titulo || "banner"}
           className="w-full h-full object-cover"
           onError={() => setImgError((e) => ({ ...e, [b.id]: true }))}

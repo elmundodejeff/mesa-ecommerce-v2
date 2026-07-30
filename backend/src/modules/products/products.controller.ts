@@ -8,8 +8,14 @@ import {
   Body,
   Query,
   ParseIntPipe,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProductsService } from './products.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
@@ -67,5 +73,31 @@ export class ProductsController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.service.remove(id);
+  }
+
+  // ===== Imagenes =====
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/imagenes')
+  @UseInterceptors(FilesInterceptor('imagenes', 5))
+  subirImagenes(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /^image\/(jpeg|png|webp)$/ }),
+        ],
+      }),
+    )
+    files: Express.Multer.File[],
+  ) {
+    return this.service.subirImagenes(id, files);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('imagenes/:imagenId')
+  borrarImagen(@Param('imagenId', ParseIntPipe) imagenId: number) {
+    return this.service.borrarImagen(imagenId);
   }
 }
