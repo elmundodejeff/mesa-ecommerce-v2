@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/admin/ordenes", label: "Ordenes" },
   { href: "/admin/banners", label: "Banners" },
   { href: "/admin/menu", label: "Menu" },
+  { href: "/admin/blog", label: "Blog" },
   { href: "/admin/config", label: "Config" },
 ];
 
