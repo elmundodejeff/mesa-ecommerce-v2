@@ -18,6 +18,9 @@ interface Producto {
   stock: number;
   descripcion: string | null;
   idioma?: string | null;
+  preventa?: boolean;
+  fechaLanzamiento?: string | null;
+  textoPreventa?: string | null;
   imagenes?: { id: number; url: string }[];
   categorias?: { id: number; nombre: string }[];
   secciones?: { id: number; nombre: string }[];
@@ -240,14 +243,14 @@ export default function TiendaCliente({
           <button
             onClick={aplicarFiltros}
             disabled={buscando}
-            className="text-white px-5 py-2 rounded text-sm font-medium disabled:opacity-50"
+            className="text-white px-5 py-2 text-sm font-medium btn-pill"
             style={{ backgroundColor: config.colorMarca }}
           >
             {buscando ? "Buscando..." : "Filtrar"}
           </button>
           <button
             onClick={limpiarFiltros}
-            className="border px-4 py-2 rounded text-sm text-gray-600"
+            className="border px-4 py-2 rounded-full text-sm text-gray-600 btn-pill"
           >
             Limpiar
           </button>
@@ -259,12 +262,21 @@ export default function TiendaCliente({
           {lista.map((p) => (
             <div
               key={p.id}
-              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col border border-gray-100"
+              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col border-2"
+              style={{ borderColor: p.preventa ? config.colorMarca : "#f3f4f6" }}
             >
               <button
                 onClick={() => setDetalle(p)}
-                className="aspect-square mb-3 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center"
+                className="relative aspect-square mb-3 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center"
               >
+                {p.preventa && (
+                  <span
+                    className="absolute top-2 left-2 z-10 text-xs font-medium text-white px-3 py-1 rounded-full"
+                    style={{ backgroundColor: config.colorMarca }}
+                  >
+                    Preventa
+                  </span>
+                )}
                 {p.imagenes && p.imagenes.length > 0 ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -299,12 +311,16 @@ export default function TiendaCliente({
                 ${p.precio.toLocaleString("es-CL")}
               </p>
               <p className="text-xs text-gray-400 mb-4">
-                {p.stock > 0 ? `${p.stock} disponibles` : "Agotado"}
+                {p.preventa && p.fechaLanzamiento
+                  ? `Lanzamiento: ${new Date(p.fechaLanzamiento).toLocaleDateString("es-CL", { day: "numeric", month: "long" })}`
+                  : p.stock > 0
+                    ? `${p.stock} disponibles`
+                    : "Agotado"}
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setDetalle(p)}
-                  className="flex-1 border py-2.5 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
+                  className="flex-1 border py-2.5 rounded-full font-medium text-gray-700 hover:bg-gray-50 btn-pill"
                 >
                   Ver
                 </button>
@@ -317,10 +333,10 @@ export default function TiendaCliente({
                     })
                   }
                   disabled={p.stock < 1}
-                  className="flex-1 text-white py-2.5 rounded-lg font-medium disabled:opacity-40"
+                  className="flex-1 text-white py-2.5 font-medium btn-pill"
                   style={{ backgroundColor: config.colorMarca }}
                 >
-                  {p.stock < 1 ? "Sin stock" : "Agregar"}
+                  {p.stock < 1 ? "Sin stock" : p.preventa ? "Reservar" : "Agregar"}
                 </button>
               </div>
             </div>
@@ -536,17 +552,26 @@ function ModalDetalle({
               {producto.descripcion || "Sin descripcion."}
             </p>
 
+            {producto.preventa && producto.fechaLanzamiento && (
+              <p className="text-sm mt-3 font-medium" style={{ color: colorMarca }}>
+                Lanzamiento: {new Date(producto.fechaLanzamiento).toLocaleDateString("es-CL", { day: "numeric", month: "long", year: "numeric" })}
+              </p>
+            )}
+            {producto.textoPreventa && (
+              <p className="text-sm text-gray-500 mt-1">{producto.textoPreventa}</p>
+            )}
+
             <button
               onClick={agregar}
               disabled={producto.stock < 1}
-              className="w-full mt-6 text-white py-3 rounded-lg font-medium disabled:opacity-40"
+              className="w-full mt-6 text-white py-3 font-medium btn-pill"
               style={{ backgroundColor: colorMarca }}
             >
               {producto.stock < 1
                 ? "Sin stock"
                 : agregado
-                  ? "Agregado al carrito!"
-                  : "Agregar al carrito"}
+                  ? producto.preventa ? "Reservado!" : "Agregado al carrito!"
+                  : producto.preventa ? "Reservar" : "Agregar al carrito"}
             </button>
           </div>
         </div>

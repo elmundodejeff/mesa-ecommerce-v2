@@ -109,7 +109,7 @@ export default function AdminProductos() {
           <input placeholder="Descripcion (opcional)" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="border rounded px-3 py-2 col-span-2" />
           <div className="col-span-2">
             {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
-            <button type="submit" disabled={cargando} className="bg-emerald-700 text-white px-6 py-2 rounded hover:bg-emerald-800 disabled:opacity-50">
+            <button type="submit" disabled={cargando} className="text-white px-6 py-2 btn-pill bg-marca disabled:opacity-50">
               {cargando ? "Guardando..." : "Crear producto"}
             </button>
           </div>
@@ -138,7 +138,7 @@ export default function AdminProductos() {
                 <td className="py-2">{p.stock}</td>
                 <td className="py-2">{p.idioma || "-"}</td>
                 <td className="py-2 text-right space-x-3">
-                  <button onClick={() => setEditando(p)} className="text-emerald-700 hover:underline">Editar</button>
+                  <button onClick={() => setEditando(p)} className="text-marca hover:underline">Editar</button>
                   <button onClick={() => eliminar(p.id)} className="text-red-600 hover:underline">Eliminar</button>
                 </td>
               </tr>

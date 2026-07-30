@@ -89,7 +89,7 @@ export default function AdminCategorias() {
           required
           className="flex-1 border rounded px-3 py-2"
         />
-        <button className="bg-emerald-700 text-white px-6 py-2 rounded hover:bg-emerald-800">
+        <button className="text-white px-6 py-2 btn-pill bg-marca">
           Agregar
         </button>
       </form>
@@ -114,7 +114,7 @@ export default function AdminCategorias() {
                 <div className="flex gap-3 text-sm">
                   <button
                     onClick={() => guardarEdicion(c.id)}
-                    className="text-emerald-700 hover:underline"
+                    className="text-marca hover:underline"
                   >
                     Guardar
                   </button>
@@ -139,7 +139,7 @@ export default function AdminCategorias() {
                 <div className="flex gap-4 text-sm">
                   <button
                     onClick={() => empezarEdicion(c)}
-                    className="text-emerald-700 hover:underline"
+                    className="text-marca hover:underline"
                   >
                     Editar
                   </button>

@@ -180,14 +180,14 @@ export default function AdminConfig() {
 
       {error && <p className="text-red-600">{error}</p>}
       {guardado && (
-        <p className="text-emerald-700">
+        <p className="text-marca">
           Guardado. Recarga la tienda para ver los cambios.
         </p>
       )}
       <button
         onClick={guardar}
         disabled={cargando}
-        className="bg-emerald-700 text-white px-6 py-2 rounded hover:bg-emerald-800 disabled:opacity-50"
+        className="text-white px-6 py-2 btn-pill bg-marca disabled:opacity-50"
       >
         {cargando ? "Guardando..." : "Guardar cambios"}
       </button>
