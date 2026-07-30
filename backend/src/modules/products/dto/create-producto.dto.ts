@@ -3,6 +3,7 @@ import {
   IsInt,
   IsBoolean,
   IsOptional,
+  IsArray,
   Min,
 } from 'class-validator';
 
@@ -33,4 +34,14 @@ export class CreateProductoDto {
   @IsOptional()
   @IsBoolean()
   preventa?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  categoriaIds?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  seccionIds?: number[];
 }
