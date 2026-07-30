@@ -15,6 +15,7 @@ interface Producto {
   precio: number;
   stock: number;
   descripcion: string | null;
+  idioma?: string | null;
   imagenes?: { id: number; url: string }[];
   categorias?: { id: number; nombre: string }[];
   secciones?: { id: number; nombre: string }[];
@@ -449,6 +450,11 @@ function ModalDetalle({
                   {s.nombre}
                 </span>
               ))}
+              {producto.idioma && (
+                <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
+                  {producto.idioma}
+                </span>
+              )}
             </div>
 
             <h2 className="text-2xl font-bold text-gray-900">
@@ -465,6 +471,11 @@ function ModalDetalle({
                 ? `${producto.stock} disponibles`
                 : "Agotado"}
             </p>
+            {producto.idioma && (
+              <p className="text-sm text-gray-500 mt-1">
+                Idioma: <span className="font-medium text-gray-700">{producto.idioma}</span>
+              </p>
+            )}
             <p className="text-gray-700 mt-4 whitespace-pre-wrap leading-relaxed">
               {producto.descripcion || "Sin descripcion."}
             </p>
