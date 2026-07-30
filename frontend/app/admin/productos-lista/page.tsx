@@ -14,6 +14,9 @@ interface Producto {
   stock: number;
   descripcion: string | null;
   idioma?: string | null;
+  preventa?: boolean;
+  fechaLanzamiento?: string | null;
+  textoPreventa?: string | null;
   categorias?: Rel[];
   secciones?: Rel[];
   imagenes?: Imagen[];
@@ -30,6 +33,9 @@ export default function AdminProductos() {
   const [stock, setStock] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [idioma, setIdioma] = useState("");
+  const [preventa, setPreventa] = useState(false);
+  const [fechaLanzamiento, setFechaLanzamiento] = useState("");
+  const [textoPreventa, setTextoPreventa] = useState("");
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const [editando, setEditando] = useState<Producto | null>(null);
@@ -67,6 +73,9 @@ export default function AdminProductos() {
           stock: Number(stock),
           descripcion: descripcion || undefined,
           idioma: idioma || undefined,
+          preventa,
+          fechaLanzamiento: preventa && fechaLanzamiento ? fechaLanzamiento : undefined,
+          textoPreventa: preventa && textoPreventa ? textoPreventa : undefined,
         },
       });
       setNombre("");
@@ -74,6 +83,9 @@ export default function AdminProductos() {
       setStock("");
       setDescripcion("");
       setIdioma("");
+      setPreventa(false);
+      setFechaLanzamiento("");
+      setTextoPreventa("");
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al crear");
@@ -107,6 +119,24 @@ export default function AdminProductos() {
             {IDIOMAS.map((i) => (<option key={i} value={i}>{i}</option>))}
           </select>
           <input placeholder="Descripcion (opcional)" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="border rounded px-3 py-2 col-span-2" />
+          <div className="col-span-2 border-t pt-4 mt-1">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={preventa} onChange={(e) => setPreventa(e.target.checked)} className="w-4 h-4" />
+              <span className="text-sm font-medium text-gray-700">Es preventa</span>
+            </label>
+            {preventa && (
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Fecha de lanzamiento</label>
+                  <input type="date" value={fechaLanzamiento} onChange={(e) => setFechaLanzamiento(e.target.value)} className="w-full border rounded px-3 py-2" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Texto de preventa</label>
+                  <input placeholder="Reserva ahora, llega el..." value={textoPreventa} onChange={(e) => setTextoPreventa(e.target.value)} className="w-full border rounded px-3 py-2" />
+                </div>
+              </div>
+            )}
+          </div>
           <div className="col-span-2">
             {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
             <button type="submit" disabled={cargando} className="text-white px-6 py-2 btn-pill bg-marca disabled:opacity-50">
@@ -180,6 +210,11 @@ function ModalEditar({
   const [idioma, setIdioma] = useState(producto.idioma || "");
   const [catIds, setCatIds] = useState<number[]>((producto.categorias || []).map((c) => c.id));
   const [secIds, setSecIds] = useState<number[]>((producto.secciones || []).map((s) => s.id));
+  const [preventa, setPreventa] = useState(producto.preventa || false);
+  const [fechaLanzamiento, setFechaLanzamiento] = useState(
+    producto.fechaLanzamiento ? producto.fechaLanzamiento.slice(0, 10) : ""
+  );
+  const [textoPreventa, setTextoPreventa] = useState(producto.textoPreventa || "");
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
 
@@ -203,6 +238,9 @@ function ModalEditar({
           idioma: idioma || undefined,
           categoriaIds: catIds,
           seccionIds: secIds,
+          preventa,
+          fechaLanzamiento: preventa && fechaLanzamiento ? fechaLanzamiento : undefined,
+          textoPreventa: preventa && textoPreventa ? textoPreventa : undefined,
         },
       });
       onGuardado();
@@ -233,7 +271,7 @@ function ModalEditar({
             <p className="text-sm font-medium text-gray-700 mb-2">Categorias</p>
             <div className="flex flex-wrap gap-2">
               {categorias.map((c) => (
-                <button key={c.id} type="button" onClick={() => toggle(catIds, setCatIds, c.id)} className={`text-sm px-3 py-1 rounded-full border ${catIds.includes(c.id) ? "bg-emerald-700 text-white border-emerald-700" : "text-gray-600"}`}>
+                <button key={c.id} type="button" onClick={() => toggle(catIds, setCatIds, c.id)} className={`text-sm px-3 py-1 rounded-full border ${catIds.includes(c.id) ? "text-white bg-marca border-marca" : "text-gray-600"}`}>
                   {c.nombre}
                 </button>
               ))}
@@ -244,18 +282,37 @@ function ModalEditar({
             <p className="text-sm font-medium text-gray-700 mb-2">Secciones</p>
             <div className="flex flex-wrap gap-2">
               {secciones.map((s) => (
-                <button key={s.id} type="button" onClick={() => toggle(secIds, setSecIds, s.id)} className={`text-sm px-3 py-1 rounded-full border ${secIds.includes(s.id) ? "bg-emerald-700 text-white border-emerald-700" : "text-gray-600"}`}>
+                <button key={s.id} type="button" onClick={() => toggle(secIds, setSecIds, s.id)} className={`text-sm px-3 py-1 rounded-full border ${secIds.includes(s.id) ? "text-white bg-marca border-marca" : "text-gray-600"}`}>
                   {s.nombre}
                 </button>
               ))}
             </div>
           </div>
 
+          <div className="border-t pt-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={preventa} onChange={(e) => setPreventa(e.target.checked)} className="w-4 h-4" />
+              <span className="text-sm font-medium text-gray-700">Es preventa</span>
+            </label>
+            {preventa && (
+              <div className="space-y-3 mt-3">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Fecha de lanzamiento</label>
+                  <input type="date" value={fechaLanzamiento} onChange={(e) => setFechaLanzamiento(e.target.value)} className="w-full border rounded px-3 py-2" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Texto de preventa</label>
+                  <input placeholder="Reserva ahora, llega el..." value={textoPreventa} onChange={(e) => setTextoPreventa(e.target.value)} className="w-full border rounded px-3 py-2" />
+                </div>
+              </div>
+            )}
+          </div>
+
           <SeccionImagenes producto={producto} onCambio={() => {}} />
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <div className="flex gap-3 pt-2">
-            <button onClick={guardar} disabled={guardando} className="flex-1 bg-emerald-700 text-white py-2 rounded hover:bg-emerald-800 disabled:opacity-50">
+            <button onClick={guardar} disabled={guardando} className="flex-1 text-white py-2 btn-pill bg-marca">
               {guardando ? "Guardando..." : "Guardar cambios"}
             </button>
             <button onClick={onCerrar} className="px-6 border rounded text-gray-600">Cancelar</button>

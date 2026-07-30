@@ -23,6 +23,11 @@ export class SectionsController {
     return this.service.findAll();
   }
 
+  @Get('home')
+  home() {
+    return this.service.activasConProductos();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.service.findOne(id);

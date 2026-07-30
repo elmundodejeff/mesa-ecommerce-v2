@@ -13,6 +13,18 @@ export class SectionsRepository {
     });
   }
 
+  activasConProductos() {
+    return this.prisma.seccion.findMany({
+      where: { activa: true },
+      orderBy: { orden: "asc" },
+      include: {
+        productos: {
+          include: { imagenes: true, categorias: true, secciones: true },
+        },
+      },
+    });
+  }
+
   findOne(id: number) {
     return this.prisma.seccion.findUnique({
       where: { id },

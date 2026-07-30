@@ -11,6 +11,10 @@ export class SectionsService {
     return this.repo.findAll();
   }
 
+  activasConProductos() {
+    return this.repo.activasConProductos();
+  }
+
   async findOne(id: number) {
     const sec = await this.repo.findOne(id);
     if (!sec) {

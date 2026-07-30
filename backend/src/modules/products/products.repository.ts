@@ -9,6 +9,8 @@ interface ProductoData {
   destacado?: boolean;
   sku?: string;
   preventa?: boolean;
+  fechaLanzamiento?: string;
+  textoPreventa?: string;
   idioma?: string;
   categoriaIds?: number[];
   seccionIds?: number[];
@@ -72,13 +74,16 @@ export class ProductsRepository {
   }
 
   create(data: ProductoData) {
-    const { categoriaIds, seccionIds, ...resto } = data;
+    const { categoriaIds, seccionIds, fechaLanzamiento, ...resto } = data;
     return this.prisma.producto.create({
       data: {
         ...resto,
         nombre: resto.nombre!,
         precio: resto.precio!,
         stock: resto.stock!,
+        fechaLanzamiento: fechaLanzamiento
+          ? new Date(fechaLanzamiento)
+          : undefined,
         categorias: categoriaIds
           ? { connect: categoriaIds.map((id) => ({ id })) }
           : undefined,
@@ -91,11 +96,14 @@ export class ProductsRepository {
   }
 
   update(id: number, data: ProductoData) {
-    const { categoriaIds, seccionIds, ...resto } = data;
+    const { categoriaIds, seccionIds, fechaLanzamiento, ...resto } = data;
     return this.prisma.producto.update({
       where: { id },
       data: {
         ...resto,
+        fechaLanzamiento: fechaLanzamiento
+          ? new Date(fechaLanzamiento)
+          : undefined,
         // set reemplaza todas las relaciones por las nuevas
         categorias: categoriaIds
           ? { set: categoriaIds.map((id) => ({ id })) }

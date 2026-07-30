@@ -1,13 +1,7 @@
 import { getConfig } from "@/lib/config";
-import TiendaCliente from "@/components/TiendaCliente";
-
-interface Producto {
-  id: number;
-  nombre: string;
-  precio: number;
-  stock: number;
-  descripcion: string | null;
-}
+import Header from "@/components/Header";
+import HomeCliente from "@/components/HomeCliente";
+import Footer from "@/components/Footer";
 
 export interface Banner {
   id: number;
@@ -42,21 +36,18 @@ async function getJson<T>(path: string, fallback: T): Promise<T> {
 }
 
 export default async function Home() {
-  const [config, productos, banners, menu, categorias] = await Promise.all([
+  const [config, banners, menu, secciones] = await Promise.all([
     getConfig(),
-    getJson<Producto[]>("/products", []),
     getJson<Banner[]>("/content/banners", []),
     getJson<MenuItem[]>("/content/menu", []),
-    getJson<Categoria[]>("/categories", []),
+    getJson<[]>("/sections/home", []),
   ]);
 
   return (
-    <TiendaCliente
-      config={config}
-      productos={productos}
-      banners={banners}
-      menu={menu}
-      categorias={categorias}
-    />
+    <>
+      <Header config={config} menu={menu} />
+      <HomeCliente config={config} banners={banners} secciones={secciones} />
+      <Footer config={config} />
+    </>
   );
 }
