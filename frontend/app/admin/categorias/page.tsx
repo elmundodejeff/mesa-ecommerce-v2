@@ -13,6 +13,8 @@ export default function AdminCategorias() {
   const [items, setItems] = useState<Categoria[]>([]);
   const [nombre, setNombre] = useState("");
   const [error, setError] = useState("");
+  const [editId, setEditId] = useState<number | null>(null);
+  const [editNombre, setEditNombre] = useState("");
 
   async function cargar() {
     try {
@@ -32,6 +34,33 @@ export default function AdminCategorias() {
     try {
       await api("/categories", { method: "POST", auth: true, body: { nombre } });
       setNombre("");
+      await cargar();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+    }
+  }
+
+  function empezarEdicion(c: Categoria) {
+    setEditId(c.id);
+    setEditNombre(c.nombre);
+    setError("");
+  }
+
+  function cancelarEdicion() {
+    setEditId(null);
+    setEditNombre("");
+  }
+
+  async function guardarEdicion(id: number) {
+    if (!editNombre.trim()) return;
+    setError("");
+    try {
+      await api(`/categories/${id}`, {
+        method: "PATCH",
+        auth: true,
+        body: { nombre: editNombre.trim() },
+      });
+      cancelarEdicion();
       await cargar();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
@@ -70,20 +99,59 @@ export default function AdminCategorias() {
       <div className="bg-white rounded-lg shadow divide-y">
         {items.map((c) => (
           <div key={c.id} className="flex justify-between items-center p-4">
-            <span className="text-gray-800">
-              {c.nombre}
-              {c._count && (
-                <span className="text-gray-400 text-sm ml-2">
-                  ({c._count.productos} productos)
+            {editId === c.id ? (
+              <>
+                <input
+                  value={editNombre}
+                  onChange={(e) => setEditNombre(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") guardarEdicion(c.id);
+                    if (e.key === "Escape") cancelarEdicion();
+                  }}
+                  autoFocus
+                  className="flex-1 border rounded px-3 py-1.5 mr-3"
+                />
+                <div className="flex gap-3 text-sm">
+                  <button
+                    onClick={() => guardarEdicion(c.id)}
+                    className="text-emerald-700 hover:underline"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    onClick={cancelarEdicion}
+                    className="text-gray-500 hover:underline"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="text-gray-800">
+                  {c.nombre}
+                  {c._count && (
+                    <span className="text-gray-400 text-sm ml-2">
+                      ({c._count.productos} productos)
+                    </span>
+                  )}
                 </span>
-              )}
-            </span>
-            <button
-              onClick={() => eliminar(c.id)}
-              className="text-red-600 hover:underline text-sm"
-            >
-              Eliminar
-            </button>
+                <div className="flex gap-4 text-sm">
+                  <button
+                    onClick={() => empezarEdicion(c)}
+                    className="text-emerald-700 hover:underline"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => eliminar(c.id)}
+                    className="text-red-600 hover:underline"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ))}
         {items.length === 0 && (
