@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { obtenerToken, borrarToken } from "@/lib/auth";
 
+const LINKS = [
+  { href: "/admin", label: "Productos" },
+  { href: "/admin/categorias", label: "Categorias" },
+  { href: "/admin/secciones", label: "Secciones" },
+  { href: "/admin/descuentos", label: "Descuentos" },
+  { href: "/admin/ordenes", label: "Ordenes" },
+  { href: "/admin/config", label: "Config" },
+];
+
 export default function AdminLayout({
   children,
 }: {
@@ -33,12 +42,11 @@ export default function AdminLayout({
         <div className="flex items-center gap-6">
           <h1 className="font-bold text-lg">Mesa - Admin</h1>
           <nav className="flex gap-4 text-sm">
-            <a href="/admin" className="hover:underline">
-              Productos
-            </a>
-            <a href="/admin/ordenes" className="hover:underline">
-              Ordenes
-            </a>
+            {LINKS.map((l) => (
+              <a key={l.href} href={l.href} className="hover:underline">
+                {l.label}
+              </a>
+            ))}
           </nav>
         </div>
         <button onClick={salir} className="text-sm hover:underline">
