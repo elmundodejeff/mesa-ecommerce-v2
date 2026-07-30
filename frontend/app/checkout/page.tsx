@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { obtenerToken } from "@/lib/auth";
 import { useCarrito } from "@/lib/carrito";
 
 interface OrdenResp {
@@ -11,7 +12,14 @@ interface OrdenResp {
   subtotal: number;
   descuentoMonto: number;
   descuentoCodigo: string | null;
+  puntosUsados: number;
+  puntosGanados: number;
   avisoDescuento: string | null;
+  avisoPuntos: string | null;
+}
+
+interface LoyaltyResp {
+  saldo: number;
 }
 
 export default function Checkout() {
@@ -20,9 +28,23 @@ export default function Checkout() {
   const [direccion, setDireccion] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [codigo, setCodigo] = useState("");
+  const [puntosAUsar, setPuntosAUsar] = useState("");
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
   const [orden, setOrden] = useState<OrdenResp | null>(null);
+
+  const [logueado, setLogueado] = useState(false);
+  const [saldoPuntos, setSaldoPuntos] = useState<number | null>(null);
+
+  useEffect(() => {
+    const token = obtenerToken();
+    if (token) {
+      setLogueado(true);
+      api<LoyaltyResp>("/loyalty/me", { auth: true })
+        .then((r) => setSaldoPuntos(r.saldo))
+        .catch(() => setSaldoPuntos(null));
+    }
+  }, []);
 
   async function pagar(e: React.FormEvent) {
     e.preventDefault();
@@ -31,6 +53,7 @@ export default function Checkout() {
     try {
       const resp = await api<OrdenResp>("/orders/checkout", {
         method: "POST",
+        auth: true, // manda token si hay sesion, no falla si es invitado
         body: {
           items: items.map((i) => ({
             productoId: i.productoId,
@@ -40,6 +63,7 @@ export default function Checkout() {
           direccionEnvio: direccion || undefined,
           ciudadEnvio: ciudad || undefined,
           codigo: codigo || undefined,
+          puntosAUsar: puntosAUsar ? Number(puntosAUsar) : undefined,
         },
       });
       setOrden(resp);
@@ -51,7 +75,6 @@ export default function Checkout() {
     }
   }
 
-  // Pantalla de confirmacion
   if (orden) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -67,12 +90,29 @@ export default function Checkout() {
                 {orden.descuentoMonto.toLocaleString("es-CL")}
               </p>
             )}
+            {orden.puntosUsados > 0 && (
+              <p className="text-emerald-700">
+                Puntos canjeados: -$
+                {orden.puntosUsados.toLocaleString("es-CL")}
+              </p>
+            )}
             <p className="font-bold text-lg border-t pt-2">
               Total: ${orden.total.toLocaleString("es-CL")}
             </p>
+            {orden.puntosGanados > 0 && (
+              <p className="text-sm text-gray-500 mt-2">
+                Ganaste {orden.puntosGanados.toLocaleString("es-CL")} puntos
+                con esta compra.
+              </p>
+            )}
             {orden.avisoDescuento && (
               <p className="text-amber-600 text-sm mt-2">
-                Aviso: {orden.avisoDescuento}
+                Descuento: {orden.avisoDescuento}
+              </p>
+            )}
+            {orden.avisoPuntos && (
+              <p className="text-amber-600 text-sm">
+                Puntos: {orden.avisoPuntos}
               </p>
             )}
           </div>
@@ -94,6 +134,16 @@ export default function Checkout() {
           &larr; Seguir comprando
         </Link>
         <h1 className="text-2xl font-bold text-gray-900 my-4">Checkout</h1>
+
+        {!logueado && (
+          <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-4 text-sm text-blue-800">
+            Compras como invitado.{" "}
+            <Link href="/login" className="underline font-medium">
+              Inicia sesion
+            </Link>{" "}
+            para ganar y usar puntos.
+          </div>
+        )}
 
         {items.length === 0 ? (
           <p className="text-gray-500">Tu carrito esta vacio.</p>
@@ -153,12 +203,43 @@ export default function Checkout() {
                 onChange={(e) => setCiudad(e.target.value)}
                 className="w-full border rounded px-3 py-2"
               />
+            </section>
+
+            <section className="bg-white rounded-lg shadow p-6 space-y-3">
+              <h2 className="font-semibold text-gray-900">
+                Descuentos y puntos
+              </h2>
               <input
                 placeholder="Codigo de descuento (opcional)"
                 value={codigo}
                 onChange={(e) => setCodigo(e.target.value.toUpperCase())}
                 className="w-full border rounded px-3 py-2"
               />
+              {logueado && (
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">
+                    Canjear puntos
+                    {saldoPuntos !== null && (
+                      <span className="text-gray-400">
+                        {" "}
+                        (saldo: {saldoPuntos.toLocaleString("es-CL")})
+                      </span>
+                    )}
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={saldoPuntos ?? undefined}
+                    placeholder="0"
+                    value={puntosAUsar}
+                    onChange={(e) => setPuntosAUsar(e.target.value)}
+                    className="w-full border rounded px-3 py-2"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    1 punto = $1 de descuento
+                  </p>
+                </div>
+              )}
             </section>
 
             {error && <p className="text-red-600">{error}</p>}
