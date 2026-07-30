@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CarritoProvider } from "@/lib/carrito";
+import { getConfig } from "@/lib/config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,10 +13,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Mesa",
-  description: "Tienda de juegos de mesa",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const config = await getConfig();
+    return {
+      title: config.nombreSitio,
+      description: `Tienda ${config.nombreSitio}`,
+    };
+  } catch {
+    return { title: "Mesa", description: "Tienda de juegos de mesa" };
+  }
+}
 
 export default function RootLayout({
   children,

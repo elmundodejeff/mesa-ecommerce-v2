@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { api } from "@/lib/api";
 
 interface OrdenItem {
@@ -82,8 +82,8 @@ export default function AdminOrdenes() {
           </thead>
           <tbody>
             {ordenes.map((o) => (
-              <>
-                <tr key={o.id} className="border-b text-gray-800">
+              <Fragment key={o.id}>
+                <tr className="border-b text-gray-800">
                   <td className="p-3 font-medium">{o.id}</td>
                   <td className="p-3">
                     {new Date(o.fecha).toLocaleDateString("es-CL")}
@@ -117,7 +117,7 @@ export default function AdminOrdenes() {
                   </td>
                 </tr>
                 {abierta === o.id && (
-                  <tr key={`${o.id}-detalle`} className="bg-gray-50">
+                  <tr className="bg-gray-50">
                     <td colSpan={6} className="p-3">
                       <ul className="text-gray-700 space-y-1">
                         {o.items.map((it) => (
@@ -136,7 +136,7 @@ export default function AdminOrdenes() {
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>
