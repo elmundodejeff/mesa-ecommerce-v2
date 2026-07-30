@@ -9,6 +9,7 @@ interface ProductoData {
   destacado?: boolean;
   sku?: string;
   preventa?: boolean;
+  idioma?: string;
   categoriaIds?: number[];
   seccionIds?: number[];
 }
@@ -19,6 +20,46 @@ export class ProductsRepository {
 
   findAll() {
     return this.prisma.producto.findMany({
+      include: { imagenes: true, categorias: true, secciones: true },
+    });
+  }
+
+  buscar(filtros: {
+    texto?: string;
+    categoriaId?: number;
+    idioma?: string;
+    precioMin?: number;
+    precioMax?: number;
+    orden?: string;
+  }) {
+    const where: any = {};
+
+    if (filtros.texto) {
+      where.OR = [
+        { nombre: { contains: filtros.texto, mode: "insensitive" } },
+        { descripcion: { contains: filtros.texto, mode: "insensitive" } },
+      ];
+    }
+    if (filtros.categoriaId) {
+      where.categorias = { some: { id: filtros.categoriaId } };
+    }
+    if (filtros.idioma) {
+      where.idioma = filtros.idioma;
+    }
+    if (filtros.precioMin !== undefined || filtros.precioMax !== undefined) {
+      where.precio = {};
+      if (filtros.precioMin !== undefined) where.precio.gte = filtros.precioMin;
+      if (filtros.precioMax !== undefined) where.precio.lte = filtros.precioMax;
+    }
+
+    let orderBy: any = { id: "desc" };
+    if (filtros.orden === "precio_asc") orderBy = { precio: "asc" };
+    else if (filtros.orden === "precio_desc") orderBy = { precio: "desc" };
+    else if (filtros.orden === "nombre") orderBy = { nombre: "asc" };
+
+    return this.prisma.producto.findMany({
+      where,
+      orderBy,
       include: { imagenes: true, categorias: true, secciones: true },
     });
   }

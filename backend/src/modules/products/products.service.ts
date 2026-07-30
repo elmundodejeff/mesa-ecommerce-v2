@@ -11,6 +11,17 @@ export class ProductsService {
     return this.repo.findAll();
   }
 
+  buscar(filtros: {
+    texto?: string;
+    categoriaId?: number;
+    idioma?: string;
+    precioMin?: number;
+    precioMax?: number;
+    orden?: string;
+  }) {
+    return this.repo.buscar(filtros);
+  }
+
   async findOne(id: number) {
     const producto = await this.repo.findOne(id);
     if (!producto) {

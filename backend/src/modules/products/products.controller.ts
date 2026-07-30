@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
@@ -21,6 +22,25 @@ export class ProductsController {
   @Get()
   findAll() {
     return this.service.findAll();
+  }
+
+  @Get('buscar')
+  buscar(
+    @Query('texto') texto?: string,
+    @Query('categoriaId') categoriaId?: string,
+    @Query('idioma') idioma?: string,
+    @Query('precioMin') precioMin?: string,
+    @Query('precioMax') precioMax?: string,
+    @Query('orden') orden?: string,
+  ) {
+    return this.service.buscar({
+      texto: texto || undefined,
+      categoriaId: categoriaId ? Number(categoriaId) : undefined,
+      idioma: idioma || undefined,
+      precioMin: precioMin ? Number(precioMin) : undefined,
+      precioMax: precioMax ? Number(precioMax) : undefined,
+      orden: orden || undefined,
+    });
   }
 
   @Get(':id')

@@ -17,6 +17,11 @@ export interface Banner {
   enlace: string | null;
 }
 
+export interface Categoria {
+  id: number;
+  nombre: string;
+}
+
 export interface MenuItem {
   id: number;
   texto: string;
@@ -37,11 +42,12 @@ async function getJson<T>(path: string, fallback: T): Promise<T> {
 }
 
 export default async function Home() {
-  const [config, productos, banners, menu] = await Promise.all([
+  const [config, productos, banners, menu, categorias] = await Promise.all([
     getConfig(),
     getJson<Producto[]>("/products", []),
     getJson<Banner[]>("/content/banners", []),
     getJson<MenuItem[]>("/content/menu", []),
+    getJson<Categoria[]>("/categories", []),
   ]);
 
   return (
@@ -50,6 +56,7 @@ export default async function Home() {
       productos={productos}
       banners={banners}
       menu={menu}
+      categorias={categorias}
     />
   );
 }

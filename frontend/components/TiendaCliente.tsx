@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCarrito } from "@/lib/carrito";
+import { api } from "@/lib/api";
 import type { Config } from "@/lib/config";
-import type { Banner, MenuItem } from "@/app/page";
+import type { Banner, MenuItem, Categoria } from "@/app/page";
 
 interface Producto {
   id: number;
@@ -22,14 +23,47 @@ export default function TiendaCliente({
   productos,
   banners,
   menu,
+  categorias,
 }: {
   config: Config;
   productos: Producto[];
   banners: Banner[];
   menu: MenuItem[];
+  categorias: Categoria[];
 }) {
   const { agregar, cantidadTotal } = useCarrito();
   const [detalle, setDetalle] = useState<Producto | null>(null);
+  const [lista, setLista] = useState<Producto[]>(productos);
+  const [texto, setTexto] = useState("");
+  const [categoriaId, setCategoriaId] = useState("");
+  const [idioma, setIdioma] = useState("");
+  const [orden, setOrden] = useState("");
+  const [buscando, setBuscando] = useState(false);
+
+  async function aplicarFiltros() {
+    setBuscando(true);
+    const params = new URLSearchParams();
+    if (texto) params.set("texto", texto);
+    if (categoriaId) params.set("categoriaId", categoriaId);
+    if (idioma) params.set("idioma", idioma);
+    if (orden) params.set("orden", orden);
+    try {
+      const res = await api<Producto[]>(`/products/buscar?${params.toString()}`);
+      setLista(res);
+    } catch {
+      setLista([]);
+    } finally {
+      setBuscando(false);
+    }
+  }
+
+  function limpiarFiltros() {
+    setTexto("");
+    setCategoriaId("");
+    setIdioma("");
+    setOrden("");
+    setLista(productos);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,9 +126,78 @@ export default function TiendaCliente({
       )}
 
       <main className="p-6 max-w-6xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Productos</h2>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-3 items-end">
+          <div className="flex-1 min-w-40">
+            <label className="block text-xs text-gray-500 mb-1">Buscar</label>
+            <input
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              placeholder="Nombre o descripcion"
+              className="w-full border rounded px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Categoria</label>
+            <select
+              value={categoriaId}
+              onChange={(e) => setCategoriaId(e.target.value)}
+              className="border rounded px-3 py-2 text-sm"
+            >
+              <option value="">Todas</option>
+              {categorias.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Idioma</label>
+            <select
+              value={idioma}
+              onChange={(e) => setIdioma(e.target.value)}
+              className="border rounded px-3 py-2 text-sm"
+            >
+              <option value="">Todos</option>
+              <option value="Español">Español</option>
+              <option value="Inglés">Inglés</option>
+              <option value="Japonés">Japonés</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Orden</label>
+            <select
+              value={orden}
+              onChange={(e) => setOrden(e.target.value)}
+              className="border rounded px-3 py-2 text-sm"
+            >
+              <option value="">Relevancia</option>
+              <option value="precio_asc">Precio: menor a mayor</option>
+              <option value="precio_desc">Precio: mayor a menor</option>
+              <option value="nombre">Nombre A-Z</option>
+            </select>
+          </div>
+          <button
+            onClick={aplicarFiltros}
+            disabled={buscando}
+            className="text-white px-5 py-2 rounded text-sm font-medium disabled:opacity-50"
+            style={{ backgroundColor: config.colorMarca }}
+          >
+            {buscando ? "Buscando..." : "Filtrar"}
+          </button>
+          <button
+            onClick={limpiarFiltros}
+            className="border px-4 py-2 rounded text-sm text-gray-600"
+          >
+            Limpiar
+          </button>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          Productos ({lista.length})
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {productos.map((p) => (
+          {lista.map((p) => (
             <div
               key={p.id}
               className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col border border-gray-100"

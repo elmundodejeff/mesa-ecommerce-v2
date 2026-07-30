@@ -20,6 +20,7 @@ model Producto {
   preventa         Boolean   @default(false)
   fechaLanzamiento DateTime?
   textoPreventa    String?
+  idioma           String?
   secciones Seccion[] @relation("ProductoSeccion")
 }
 

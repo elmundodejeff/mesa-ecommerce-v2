@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsOptional,
   IsArray,
+  IsIn,
   Min,
 } from 'class-validator';
 
@@ -34,6 +35,10 @@ export class CreateProductoDto {
   @IsOptional()
   @IsBoolean()
   preventa?: boolean;
+
+  @IsOptional()
+  @IsIn(["Español", "Inglés", "Japonés", "Otro"])
+  idioma?: string;
 
   @IsOptional()
   @IsArray()

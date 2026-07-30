@@ -9,7 +9,10 @@ interface Producto {
   precio: number;
   stock: number;
   descripcion: string | null;
+  idioma?: string | null;
 }
+
+const IDIOMAS = ["Español", "Inglés", "Japonés", "Otro"];
 
 export default function AdminProductos() {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -17,6 +20,7 @@ export default function AdminProductos() {
   const [precio, setPrecio] = useState("");
   const [stock, setStock] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [idioma, setIdioma] = useState("");
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
 
@@ -46,12 +50,14 @@ export default function AdminProductos() {
           precio: Number(precio),
           stock: Number(stock),
           descripcion: descripcion || undefined,
+          idioma: idioma || undefined,
         },
       });
       setNombre("");
       setPrecio("");
       setStock("");
       setDescripcion("");
+      setIdioma("");
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al crear");
@@ -72,8 +78,10 @@ export default function AdminProductos() {
 
   return (
     <div className="space-y-8">
+      <h1 className="text-3xl font-bold text-gray-900">Productos</h1>
+
       <section className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">Nuevo producto</h2>
+        <h2 className="text-xl font-semibold mb-4 text-gray-900">Nuevo producto</h2>
         <form onSubmit={crear} className="grid grid-cols-2 gap-4">
           <input
             placeholder="Nombre"
@@ -98,11 +106,23 @@ export default function AdminProductos() {
             required
             className="border rounded px-3 py-2"
           />
+          <select
+            value={idioma}
+            onChange={(e) => setIdioma(e.target.value)}
+            className="border rounded px-3 py-2"
+          >
+            <option value="">Idioma (opcional)</option>
+            {IDIOMAS.map((i) => (
+              <option key={i} value={i}>
+                {i}
+              </option>
+            ))}
+          </select>
           <input
             placeholder="Descripcion (opcional)"
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
-            className="border rounded px-3 py-2"
+            className="border rounded px-3 py-2 col-span-2"
           />
           <div className="col-span-2">
             {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
@@ -118,7 +138,7 @@ export default function AdminProductos() {
       </section>
 
       <section className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">
+        <h2 className="text-xl font-semibold mb-4 text-gray-900">
           Productos ({productos.length})
         </h2>
         <table className="w-full text-sm">
@@ -128,6 +148,7 @@ export default function AdminProductos() {
               <th className="py-2">Nombre</th>
               <th className="py-2">Precio</th>
               <th className="py-2">Stock</th>
+              <th className="py-2">Idioma</th>
               <th className="py-2"></th>
             </tr>
           </thead>
@@ -138,6 +159,7 @@ export default function AdminProductos() {
                 <td className="py-2">{p.nombre}</td>
                 <td className="py-2">${p.precio.toLocaleString("es-CL")}</td>
                 <td className="py-2">{p.stock}</td>
+                <td className="py-2">{p.idioma || "-"}</td>
                 <td className="py-2 text-right">
                   <button
                     onClick={() => eliminar(p.id)}
