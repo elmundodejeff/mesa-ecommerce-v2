@@ -9,19 +9,47 @@ interface Producto {
   descripcion: string | null;
 }
 
+export interface Banner {
+  id: number;
+  imagen: string;
+  titulo: string | null;
+  subtitulo: string | null;
+  enlace: string | null;
+}
+
+export interface MenuItem {
+  id: number;
+  texto: string;
+  enlace: string;
+  hijos: { id: number; texto: string; enlace: string }[];
+}
+
 const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-async function getProductos(): Promise<Producto[]> {
-  const res = await fetch(`${BASE}/products`, { cache: "no-store" });
-  if (!res.ok) return [];
-  return res.json();
+async function getJson<T>(path: string, fallback: T): Promise<T> {
+  try {
+    const res = await fetch(`${BASE}${path}`, { cache: "no-store" });
+    if (!res.ok) return fallback;
+    return res.json();
+  } catch {
+    return fallback;
+  }
 }
 
 export default async function Home() {
-  const [config, productos] = await Promise.all([
+  const [config, productos, banners, menu] = await Promise.all([
     getConfig(),
-    getProductos(),
+    getJson<Producto[]>("/products", []),
+    getJson<Banner[]>("/content/banners", []),
+    getJson<MenuItem[]>("/content/menu", []),
   ]);
 
-  return <TiendaCliente config={config} productos={productos} />;
+  return (
+    <TiendaCliente
+      config={config}
+      productos={productos}
+      banners={banners}
+      menu={menu}
+    />
+  );
 }
