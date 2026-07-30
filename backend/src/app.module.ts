@@ -13,6 +13,7 @@ import { DiscountsModule } from './modules/discounts/discounts.module';
 import { ContentModule } from './modules/content/content.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { BlogModule } from './modules/blog/blog.module';
+import { ContactModule } from './modules/contact/contact.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { BlogModule } from './modules/blog/blog.module';
     ContentModule,
     LoyaltyModule,
     BlogModule,
+    ContactModule,
   ],
   controllers: [AppController],
   providers: [AppService],
