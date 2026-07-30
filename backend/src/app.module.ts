@@ -12,6 +12,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { DiscountsModule } from './modules/discounts/discounts.module';
 import { ContentModule } from './modules/content/content.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
+import { BlogModule } from './modules/blog/blog.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { LoyaltyModule } from './modules/loyalty/loyalty.module';
     DiscountsModule,
     ContentModule,
     LoyaltyModule,
+    BlogModule,
   ],
   controllers: [AppController],
   providers: [AppService],
