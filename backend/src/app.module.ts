@@ -10,6 +10,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { SectionsModule } from './modules/sections/sections.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { DiscountsModule } from './modules/discounts/discounts.module';
+import { ContentModule } from './modules/content/content.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { DiscountsModule } from './modules/discounts/discounts.module';
     SectionsModule,
     OrdersModule,
     DiscountsModule,
+    ContentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
