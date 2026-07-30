@@ -213,7 +213,9 @@ export default function TiendaCliente({
                   <img
                     src={`${API_BASE}${p.imagenes[0].url}`}
                     alt={p.nombre}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform"
+                    className={`w-full h-full object-cover hover:scale-105 transition-transform ${
+                      p.stock < 1 ? "grayscale opacity-60" : ""
+                    }`}
                   />
                 ) : (
                   <div
@@ -303,11 +305,20 @@ function ModalDetalle({
   const imagenes = producto.imagenes || [];
   const categorias = producto.categorias || [];
   const secciones = producto.secciones || [];
+  const agotado = producto.stock < 1;
+
+  const prevImg = () =>
+    setImgActual((i) => (i - 1 + imagenes.length) % imagenes.length);
+  const nextImg = () => setImgActual((i) => (i + 1) % imagenes.length);
 
   // Cerrar con Escape
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onCerrar();
+      if (imagenes.length > 1) {
+        if (e.key === "ArrowLeft") prevImg();
+        if (e.key === "ArrowRight") nextImg();
+      }
     };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -335,23 +346,55 @@ function ModalDetalle({
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Imagen + miniaturas */}
           <div className="bg-gray-100 flex flex-col">
-            <div className="aspect-square flex items-center justify-center overflow-hidden">
+            <div className="relative aspect-square flex items-center justify-center overflow-hidden">
               {imagenes.length > 0 ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={`${API_BASE}${imagenes[imgActual].url}`}
                   alt={producto.nombre}
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full object-cover transition ${
+                    agotado ? "grayscale opacity-60" : ""
+                  }`}
                 />
               ) : (
                 <div
-                  className="w-full h-full flex items-center justify-center text-white text-7xl font-bold"
+                  className={`w-full h-full flex items-center justify-center text-white text-7xl font-bold ${
+                    agotado ? "grayscale opacity-60" : ""
+                  }`}
                   style={{
                     background: `linear-gradient(135deg, ${colorMarca}, ${colorMarca}cc)`,
                   }}
                 >
                   {producto.nombre.charAt(0)}
                 </div>
+              )}
+
+              {agotado && (
+                <span className="absolute top-3 left-3 bg-gray-900/80 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                  Agotado
+                </span>
+              )}
+
+              {imagenes.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImg}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-9 h-9 rounded-full hover:bg-black/60 flex items-center justify-center"
+                    aria-label="Imagen anterior"
+                  >
+                    &lt;
+                  </button>
+                  <button
+                    onClick={nextImg}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-9 h-9 rounded-full hover:bg-black/60 flex items-center justify-center"
+                    aria-label="Imagen siguiente"
+                  >
+                    &gt;
+                  </button>
+                  <span className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
+                    {imgActual + 1} / {imagenes.length}
+                  </span>
+                </>
               )}
             </div>
             {imagenes.length > 1 && (
@@ -369,7 +412,9 @@ function ModalDetalle({
                     <img
                       src={`${API_BASE}${img.url}`}
                       alt=""
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover ${
+                        agotado ? "grayscale opacity-60" : ""
+                      }`}
                     />
                   </button>
                 ))}
