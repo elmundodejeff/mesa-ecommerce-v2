@@ -12,6 +12,9 @@ interface Producto {
   precio: number;
   stock: number;
   descripcion: string | null;
+  imagenes?: { id: number; url: string }[];
+  categorias?: { id: number; nombre: string }[];
+  secciones?: { id: number; nombre: string }[];
 }
 
 export default function TiendaCliente({
@@ -26,6 +29,7 @@ export default function TiendaCliente({
   menu: MenuItem[];
 }) {
   const { agregar, cantidadTotal } = useCarrito();
+  const [detalle, setDetalle] = useState<Producto | null>(null);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -95,9 +99,12 @@ export default function TiendaCliente({
               key={p.id}
               className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col border border-gray-100"
             >
-              <h3 className="font-semibold text-lg text-gray-900">
+              <button
+                onClick={() => setDetalle(p)}
+                className="text-left font-semibold text-lg text-gray-900 hover:underline"
+              >
                 {p.nombre}
-              </h3>
+              </button>
               <p className="text-gray-500 text-sm flex-1 mt-1 line-clamp-2">
                 {p.descripcion || "Sin descripcion"}
               </p>
@@ -110,24 +117,180 @@ export default function TiendaCliente({
               <p className="text-xs text-gray-400 mb-4">
                 {p.stock > 0 ? `${p.stock} disponibles` : "Agotado"}
               </p>
-              <button
-                onClick={() =>
-                  agregar({
-                    productoId: p.id,
-                    nombre: p.nombre,
-                    precio: p.precio,
-                  })
-                }
-                disabled={p.stock < 1}
-                className="text-white py-2.5 rounded-lg font-medium disabled:opacity-40 transition-opacity"
-                style={{ backgroundColor: config.colorMarca }}
-              >
-                {p.stock < 1 ? "Sin stock" : "Agregar al carrito"}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDetalle(p)}
+                  className="flex-1 border py-2.5 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Ver
+                </button>
+                <button
+                  onClick={() =>
+                    agregar({
+                      productoId: p.id,
+                      nombre: p.nombre,
+                      precio: p.precio,
+                    })
+                  }
+                  disabled={p.stock < 1}
+                  className="flex-1 text-white py-2.5 rounded-lg font-medium disabled:opacity-40"
+                  style={{ backgroundColor: config.colorMarca }}
+                >
+                  {p.stock < 1 ? "Sin stock" : "Agregar"}
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </main>
+
+      {detalle && (
+        <ModalDetalle
+          producto={detalle}
+          colorMarca={config.colorMarca}
+          onCerrar={() => setDetalle(null)}
+          onAgregar={() => {
+            agregar({
+              productoId: detalle.id,
+              nombre: detalle.nombre,
+              precio: detalle.precio,
+            });
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function ModalDetalle({
+  producto,
+  colorMarca,
+  onCerrar,
+  onAgregar,
+}: {
+  producto: Producto;
+  colorMarca: string;
+  onCerrar: () => void;
+  onAgregar: () => void;
+}) {
+  const [agregado, setAgregado] = useState(false);
+  const [imgActual, setImgActual] = useState(0);
+  const imagenes = producto.imagenes || [];
+  const categorias = producto.categorias || [];
+  const secciones = producto.secciones || [];
+
+  // Cerrar con Escape
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCerrar();
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onCerrar]);
+
+  function agregar() {
+    onAgregar();
+    setAgregado(true);
+    setTimeout(() => setAgregado(false), 2000);
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      onClick={onCerrar}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          {/* Imagen */}
+          <div className="bg-gray-100 aspect-square flex items-center justify-center">
+            {imagenes.length > 0 ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imagenes[imgActual].url}
+                alt={producto.nombre}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center text-white text-7xl font-bold"
+                style={{
+                  background: `linear-gradient(135deg, ${colorMarca}, ${colorMarca}cc)`,
+                }}
+              >
+                {producto.nombre.charAt(0)}
+              </div>
+            )}
+          </div>
+
+          {/* Info */}
+          <div className="p-6 relative">
+            <button
+              onClick={onCerrar}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl leading-none"
+            >
+              &times;
+            </button>
+
+            <div className="flex flex-wrap gap-2 mb-3 pr-8">
+              {categorias.map((c) => (
+                <span
+                  key={c.id}
+                  className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-700"
+                >
+                  {c.nombre}
+                </span>
+              ))}
+              {secciones.map((s) => (
+                <span
+                  key={`s-${s.id}`}
+                  className="text-xs px-2 py-1 rounded-full text-white"
+                  style={{ backgroundColor: colorMarca }}
+                >
+                  {s.nombre}
+                </span>
+              ))}
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900">
+              {producto.nombre}
+            </h2>
+            <p
+              className="text-3xl font-bold mt-3"
+              style={{ color: colorMarca }}
+            >
+              ${producto.precio.toLocaleString("es-CL")}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">
+              {producto.stock > 0
+                ? `${producto.stock} disponibles`
+                : "Agotado"}
+            </p>
+            <p className="text-gray-700 mt-4 whitespace-pre-wrap leading-relaxed">
+              {producto.descripcion || "Sin descripcion."}
+            </p>
+
+            <button
+              onClick={agregar}
+              disabled={producto.stock < 1}
+              className="w-full mt-6 text-white py-3 rounded-lg font-medium disabled:opacity-40"
+              style={{ backgroundColor: colorMarca }}
+            >
+              {producto.stock < 1
+                ? "Sin stock"
+                : agregado
+                  ? "Agregado al carrito!"
+                  : "Agregar al carrito"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
