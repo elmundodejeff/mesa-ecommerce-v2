@@ -83,10 +83,16 @@ export default function Header({
       <div className="flex items-center gap-5">
         <Link
           href="/checkout"
-          className="px-4 py-2 font-medium inline-flex items-center gap-2 btn-pill text-white"
+          className="relative w-11 h-11 rounded-full flex items-center justify-center text-white hover:opacity-90 transition"
           style={{ backgroundColor: config.colorMarca }}
+          aria-label={`Carrito (${cantidadTotal})`}
         >
-          <span aria-hidden="true">&#128722;</span> {cantidadTotal}
+          <span aria-hidden="true" className="text-lg">&#128722;</span>
+          {cantidadTotal > 0 && (
+            <span className="absolute -top-1 -right-1 bg-gray-900 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
+              {cantidadTotal}
+            </span>
+          )}
         </Link>
 
         {usuario ? (

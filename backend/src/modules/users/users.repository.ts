@@ -19,4 +19,14 @@ export class UsersRepository {
       data: { avatar },
     });
   }
+
+  actualizarDatos(
+    id: string,
+    data: { nombre?: string; telefono?: string; rut?: string },
+  ) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
 }

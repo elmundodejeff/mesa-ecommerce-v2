@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { ConfigRepository } from './repositories/config.repository';
 import { BannerRepository } from './repositories/banner.repository';
 import { MenuRepository } from './repositories/menu.repository';
+import { AvatarRepository } from './repositories/avatar.repository';
 import { UpdateConfigDto } from './dto/update-config.dto';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
@@ -15,6 +16,7 @@ export class ContentService {
     private readonly config: ConfigRepository,
     private readonly banner: BannerRepository,
     private readonly menu: MenuRepository,
+    private readonly avatar: AvatarRepository,
   ) {}
 
   // --- Config (singleton) ---
@@ -79,4 +81,24 @@ export class ContentService {
     if (!existe) throw new NotFoundException(`Item ${id} no encontrado`);
     return this.menu.remove(id);
   }
+
+  // --- Banco de avatares ---
+  listarAvatares() {
+    return this.avatar.findAll();
+  }
+
+  crearAvatar(url: string) {
+    return this.avatar.create(url);
+  }
+
+  async eliminarAvatar(id: number) {
+    const existe = await this.avatar.findOne(id);
+    if (!existe) throw new NotFoundException(`Avatar ${id} no encontrado`);
+    return this.avatar.remove(id);
+  }
+
+  obtenerAvatar(id: number) {
+    return this.avatar.findOne(id);
+  }
+
 }

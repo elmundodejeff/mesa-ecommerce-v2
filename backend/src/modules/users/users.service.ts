@@ -52,4 +52,22 @@ export class UsersService {
     return this.repo.actualizarAvatar(id, avatar);
   }
 
+  async actualizarDatos(
+    id: string,
+    data: { nombre?: string; telefono?: string; rut?: string },
+  ) {
+    let rutNormalizado: string | undefined;
+    if (data.rut) {
+      if (!validarRut(data.rut)) {
+        throw new BadRequestException("RUT invalido");
+      }
+      rutNormalizado = formatearRut(data.rut);
+    }
+    return this.repo.actualizarDatos(id, {
+      nombre: data.nombre,
+      telefono: data.telefono,
+      rut: rutNormalizado,
+    });
+  }
+
 }

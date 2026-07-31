@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import EditorSobreNosotros from "@/components/EditorSobreNosotros";
+import BancoAvatares from "@/components/BancoAvatares";
 import type { SobreNosotrosData } from "@/components/SobreNosotrosContenido";
 
 interface ConfigData {
@@ -201,6 +202,11 @@ export default function AdminConfig() {
           Edita el contenido de la pagina. Tiene su propio boton de guardar.
         </p>
         <EditorSobreNosotros inicial={config.sobreNosotros || {}} />
+      </section>
+
+      <section className="bg-white rounded-lg shadow p-6 space-y-4">
+        <h3 className="font-medium text-gray-800">Banco de avatares</h3>
+        <BancoAvatares />
       </section>
     </div>
   );

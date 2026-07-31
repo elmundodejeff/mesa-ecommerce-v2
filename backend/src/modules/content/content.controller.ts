@@ -120,4 +120,39 @@ export class ContentController {
     return { url };
   }
 
+
+  // --- Banco de avatares ---
+  @Get('avatares')
+  listarAvatares() {
+    return this.service.listarAvatares();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('avatares')
+  @UseInterceptors(FileInterceptor('imagen'))
+  async subirAvatarBanco(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /^image\/(jpeg|png|webp)$/ }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    const url = await this.storage.save(file, 'avatares-banco');
+    return this.service.crearAvatar(url);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('avatares/:id')
+  async eliminarAvatarBanco(@Param('id', ParseIntPipe) id: number) {
+    const avatar = await this.service.obtenerAvatar(id);
+    if (avatar) {
+      await this.storage.delete(avatar.url);
+    }
+    return this.service.eliminarAvatar(id);
+  }
+
 }

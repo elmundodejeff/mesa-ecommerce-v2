@@ -4,6 +4,7 @@ import { ContentService } from './content.service';
 import { ConfigRepository } from './repositories/config.repository';
 import { BannerRepository } from './repositories/banner.repository';
 import { MenuRepository } from './repositories/menu.repository';
+import { AvatarRepository } from './repositories/avatar.repository';
 import { StorageModule } from '../../platform/storage/storage.module';
 
 @Module({
@@ -14,6 +15,7 @@ import { StorageModule } from '../../platform/storage/storage.module';
     ConfigRepository,
     BannerRepository,
     MenuRepository,
+    AvatarRepository,
   ],
 })
 export class ContentModule {}

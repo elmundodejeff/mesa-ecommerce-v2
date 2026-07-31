@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
+  Body,
   Req,
   UseGuards,
   UseInterceptors,
@@ -13,6 +15,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { UpdateUserDto, AvatarBancoDto } from './dto/update-user.dto';
 import { STORAGE_PROVIDER } from '../../platform/storage/storage.interface';
 import type { StorageProvider } from '../../platform/storage/storage.interface';
 import { Inject } from '@nestjs/common';
@@ -65,4 +68,27 @@ export class UsersController {
     const user = await this.service.actualizarAvatar(req.user.id, url);
     return { avatar: user.avatar };
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  async actualizarDatos(
+    @Req() req: ReqConUsuario,
+    @Body() dto: UpdateUserDto,
+  ) {
+    const user = await this.service.actualizarDatos(req.user.id, dto);
+    const { password, ...resto } = user;
+    void password;
+    return resto;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/avatar-banco')
+  async elegirAvatarBanco(
+    @Req() req: ReqConUsuario,
+    @Body() dto: AvatarBancoDto,
+  ) {
+    const user = await this.service.actualizarAvatar(req.user.id, dto.url);
+    return { avatar: user.avatar };
+  }
+
 }
