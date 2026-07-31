@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { obtenerToken } from "@/lib/auth";
 import { useCarrito } from "@/lib/carrito";
 
 interface Validacion {
@@ -12,7 +13,12 @@ interface Validacion {
   codigoId?: number;
 }
 
+interface ResumenPuntos {
+  saldo: number;
+}
+
 const DESC_KEY = "mesa_descuento";
+const PUNTOS_KEY = "mesa_puntos";
 
 export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
   const { items, cambiarCantidad, quitar, total } = useCarrito();
@@ -21,7 +27,10 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
   const [validando, setValidando] = useState(false);
   const [error, setError] = useState("");
 
-  // Cargar codigo aplicado previamente (si el usuario ya lo puso)
+  const [logueado, setLogueado] = useState(false);
+  const [saldoPuntos, setSaldoPuntos] = useState(0);
+  const [puntosAUsar, setPuntosAUsar] = useState(0);
+
   useEffect(() => {
     const guardado = localStorage.getItem(DESC_KEY);
     if (guardado) {
@@ -30,6 +39,17 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
       } catch {
         // ignore
       }
+    }
+    const puntosGuardados = localStorage.getItem(PUNTOS_KEY);
+    if (puntosGuardados) {
+      const n = Number(puntosGuardados);
+      if (!isNaN(n)) setPuntosAUsar(n);
+    }
+    if (obtenerToken()) {
+      setLogueado(true);
+      api<ResumenPuntos>("/loyalty/me", { auth: true })
+        .then((r) => setSaldoPuntos(r.saldo))
+        .catch(() => setSaldoPuntos(0));
     }
   }, []);
 
@@ -62,13 +82,24 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
     setError("");
   }
 
-  // Calcular descuento
   const montoDescuento = aplicado
     ? aplicado.tipo === "porcentaje"
       ? Math.round(total * (aplicado.valor / 100))
       : Math.min(aplicado.valor, total)
     : 0;
-  const totalFinal = Math.max(0, total - montoDescuento);
+
+  const totalTrasDescuento = Math.max(0, total - montoDescuento);
+
+  // Tope de puntos: no mas que el saldo, ni mas que el total tras descuento
+  const maxPuntos = Math.min(saldoPuntos, totalTrasDescuento);
+  const puntosEfectivos = Math.min(Math.max(0, puntosAUsar), maxPuntos);
+  const totalFinal = Math.max(0, totalTrasDescuento - puntosEfectivos);
+
+  function setPuntos(n: number) {
+    const val = Math.min(Math.max(0, Math.floor(n)), maxPuntos);
+    setPuntosAUsar(val);
+    localStorage.setItem(PUNTOS_KEY, String(val));
+  }
 
   return (
     <aside className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-6">
@@ -160,6 +191,34 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
             {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
           </div>
 
+          {/* Canje de puntos (solo logueados con saldo) */}
+          {logueado && saldoPuntos > 0 && (
+            <div className="border-t border-gray-100 pt-3 mb-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Canjear puntos</span>
+                <span className="text-xs text-gray-400">Saldo: {saldoPuntos.toLocaleString("es-CL")}</span>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  max={maxPuntos}
+                  value={puntosAUsar || ""}
+                  onChange={(e) => setPuntos(Number(e.target.value))}
+                  placeholder="0"
+                  className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                />
+                <button
+                  onClick={() => setPuntos(maxPuntos)}
+                  className="border px-3 py-2 text-sm rounded-full text-gray-600 btn-pill whitespace-nowrap"
+                >
+                  Usar todo
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">1 punto = $1</p>
+            </div>
+          )}
+
           {/* Totales */}
           <div className="border-t border-gray-100 pt-3 space-y-1 text-sm">
             <div className="flex justify-between text-gray-500">
@@ -170,6 +229,12 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
               <div className="flex justify-between" style={{ color: colorMarca }}>
                 <span>Descuento</span>
                 <span>-${montoDescuento.toLocaleString("es-CL")}</span>
+              </div>
+            )}
+            {puntosEfectivos > 0 && (
+              <div className="flex justify-between" style={{ color: colorMarca }}>
+                <span>Puntos ({puntosEfectivos.toLocaleString("es-CL")})</span>
+                <span>-${puntosEfectivos.toLocaleString("es-CL")}</span>
               </div>
             )}
             <div className="flex justify-between font-bold text-lg text-gray-900 pt-1">

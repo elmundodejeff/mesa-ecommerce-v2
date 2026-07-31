@@ -41,6 +41,15 @@ export default function CheckoutCliente() {
       }
     }
   }, []);
+
+  // Pre-cargar puntos aplicados en el carrito lateral
+  useEffect(() => {
+    const p = localStorage.getItem("mesa_puntos");
+    if (p) {
+      const n = Number(p);
+      if (!isNaN(n) && n > 0) setPuntosAUsar(String(n));
+    }
+  }, []);
   const [puntosAUsar, setPuntosAUsar] = useState("");
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
@@ -82,6 +91,7 @@ export default function CheckoutCliente() {
       setOrden(resp);
       vaciar();
       localStorage.removeItem("mesa_descuento");
+      localStorage.removeItem("mesa_puntos");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al procesar");
     } finally {
