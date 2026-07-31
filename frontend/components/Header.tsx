@@ -43,7 +43,28 @@ export default function Header({
       }}
     >
       <div className="flex items-center gap-8">
-        <h1 className="font-bold text-xl">{config.nombreSitio}</h1>
+        {(() => {
+          const destino = config.logoUrl || "/";
+          const contenido = config.logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={config.logo.startsWith("http") ? config.logo : `${API_BASE}${config.logo}`}
+              alt={config.nombreSitio}
+              className="h-10 w-auto object-contain"
+            />
+          ) : (
+            <h1 className="font-bold text-xl">{config.nombreSitio}</h1>
+          );
+          return destino.startsWith("http") ? (
+            <a href={destino} className="hover:opacity-80 transition">
+              {contenido}
+            </a>
+          ) : (
+            <Link href={destino} className="hover:opacity-80 transition">
+              {contenido}
+            </Link>
+          );
+        })()}
         <nav className="hidden md:flex gap-5 text-sm">
           {menu.map((item) => {
             const activo =

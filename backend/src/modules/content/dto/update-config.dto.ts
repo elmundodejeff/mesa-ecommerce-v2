@@ -4,6 +4,7 @@ export class UpdateConfigDto {
   @IsOptional() @IsString() colorMarca?: string;
   @IsOptional() @IsString() nombreSitio?: string;
   @IsOptional() @IsString() logo?: string;
+  @IsOptional() @IsString() logoUrl?: string;
   @IsOptional() @IsString() colorHeader?: string;
   @IsOptional() @IsString() colorHeaderTexto?: string;
   @IsOptional() @IsString() fuente?: string;

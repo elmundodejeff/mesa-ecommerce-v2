@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api, apiUpload } from "@/lib/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 import EditorSobreNosotros from "@/components/EditorSobreNosotros";
 import BancoAvatares from "@/components/BancoAvatares";
 import type { SobreNosotrosData } from "@/components/SobreNosotrosContenido";
@@ -10,6 +11,7 @@ interface ConfigData {
   colorMarca: string;
   nombreSitio: string;
   logo: string | null;
+  logoUrl: string | null;
   colorHeader: string;
   colorHeaderTexto: string;
   fuente: string;
@@ -29,6 +31,25 @@ export default function AdminConfig() {
   const [error, setError] = useState("");
   const [guardado, setGuardado] = useState(false);
   const [cargando, setCargando] = useState(false);
+  const [subiendoLogo, setSubiendoLogo] = useState(false);
+
+  async function subirLogo(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setError("");
+    setSubiendoLogo(true);
+    try {
+      const fd = new FormData();
+      fd.append("imagen", f);
+      const res = await apiUpload<{ url: string }>("/content/upload", fd);
+      set("logo", res.url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al subir logo");
+    } finally {
+      setSubiendoLogo(false);
+      e.target.value = "";
+    }
+  }
 
   useEffect(() => {
     api<ConfigData>("/content/config")
@@ -54,6 +75,7 @@ export default function AdminConfig() {
         body: {
           nombreSitio: config.nombreSitio,
           logo: config.logo || undefined,
+          logoUrl: config.logoUrl || undefined,
           fuente: config.fuente,
           colorMarca: config.colorMarca,
           colorHeader: config.colorHeader,
@@ -93,10 +115,48 @@ export default function AdminConfig() {
             className="w-full border rounded px-3 py-2"
           />
         </Campo>
-        <Campo label="Logo (URL)">
+        <Campo label="Logo del sitio">
+          <div className="flex items-center gap-4">
+            {config.logo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={config.logo.startsWith("http") ? config.logo : `${API_BASE}${config.logo}`}
+                alt="Logo"
+                className="h-14 w-14 object-contain rounded border bg-gray-50 p-1"
+              />
+            ) : (
+              <div className="h-14 w-14 rounded border border-dashed flex items-center justify-center text-gray-300 text-xs">
+                Sin logo
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm px-3 py-1.5 border rounded cursor-pointer hover:bg-gray-50 inline-block w-fit">
+                {subiendoLogo ? "Subiendo..." : "Subir imagen"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={subirLogo}
+                  disabled={subiendoLogo}
+                  className="hidden"
+                />
+              </label>
+              {config.logo && (
+                <button
+                  type="button"
+                  onClick={() => set("logo", "")}
+                  className="text-sm text-red-600 hover:underline w-fit"
+                >
+                  Quitar logo
+                </button>
+              )}
+            </div>
+          </div>
+        </Campo>
+        <Campo label="URL de destino del logo (al hacer clic)">
           <input
-            value={config.logo || ""}
-            onChange={(e) => set("logo", e.target.value)}
+            value={config.logoUrl || ""}
+            onChange={(e) => set("logoUrl", e.target.value)}
+            placeholder="/ (por defecto lleva al inicio)"
             className="w-full border rounded px-3 py-2"
           />
         </Campo>

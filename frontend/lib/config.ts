@@ -2,6 +2,7 @@ export interface Config {
   colorMarca: string;
   nombreSitio: string;
   logo: string | null;
+  logoUrl: string | null;
   colorHeader: string;
   colorHeaderTexto: string;
   fuente: string;

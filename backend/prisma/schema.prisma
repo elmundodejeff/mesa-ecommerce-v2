@@ -98,6 +98,7 @@ model Config {
   colorMarca  String   @default("#1d9e75")
   nombreSitio String   @default("Mesa")
   logo        String?
+  logoUrl     String?
   colorHeader       String   @default("#04342C")
   colorHeaderTexto  String   @default("#ffffff")
   fuente String @default("Poppins")

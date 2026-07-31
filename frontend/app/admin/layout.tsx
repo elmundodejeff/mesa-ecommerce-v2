@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { obtenerToken, borrarToken, obtenerUsuario } from "@/lib/auth";
+import { api } from "@/lib/api";
 import type { UsuarioSesion } from "@/lib/auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -31,6 +32,9 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [ok, setOk] = useState(false);
   const [usuario, setUsuario] = useState<UsuarioSesion | null>(null);
+  const [logo, setLogo] = useState<string | null>(null);
+  const [nombreSitio, setNombreSitio] = useState("Mesa Admin");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!obtenerToken()) {
@@ -38,6 +42,13 @@ export default function AdminLayout({
     } else {
       setOk(true);
       setUsuario(obtenerUsuario());
+      api<{ logo: string | null; nombreSitio: string; logoUrl: string | null }>("/content/config")
+        .then((c) => {
+          setLogo(c.logo);
+          setNombreSitio(c.nombreSitio || "Mesa Admin");
+          setLogoUrl(c.logoUrl);
+        })
+        .catch(() => {});
     }
   }, [router]);
 
@@ -52,7 +63,28 @@ export default function AdminLayout({
     <div className="min-h-screen flex bg-gray-50">
       <aside className="w-60 bg-white border-r border-gray-200 flex flex-col shrink-0">
         <div className="px-5 py-5 border-b border-gray-100">
-          <h1 className="font-bold text-lg text-marca">Mesa Admin</h1>
+          {(() => {
+            const destino = logoUrl || "/admin";
+            const contenido = logo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logo.startsWith("http") ? logo : `${API_BASE}${logo}`}
+                alt={nombreSitio}
+                className="h-9 w-auto object-contain"
+              />
+            ) : (
+              <h1 className="font-bold text-lg text-marca">{nombreSitio}</h1>
+            );
+            return destino.startsWith("http") ? (
+              <a href={destino} className="hover:opacity-80 transition inline-block">
+                {contenido}
+              </a>
+            ) : (
+              <Link href={destino} className="hover:opacity-80 transition inline-block">
+                {contenido}
+              </Link>
+            );
+          })()}
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1">
           {LINKS.map((l) => {
