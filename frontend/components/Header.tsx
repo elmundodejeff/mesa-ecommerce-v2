@@ -21,9 +21,11 @@ export default function Header({
   const { cantidadTotal } = useCarrito();
   const pathname = usePathname();
   const [usuario, setUsuario] = useState<UsuarioSesion | null>(null);
+  const [montado, setMontado] = useState(false);
 
   useEffect(() => {
     setUsuario(obtenerUsuario());
+    setMontado(true);
   }, []);
 
   function salir() {
@@ -45,9 +47,10 @@ export default function Header({
         <nav className="hidden md:flex gap-5 text-sm">
           {menu.map((item) => {
             const activo =
-              item.enlace === "/"
+              montado &&
+              (item.enlace === "/"
                 ? pathname === "/"
-                : pathname.startsWith(item.enlace);
+                : pathname.startsWith(item.enlace));
             const tieneHijos = item.hijos && item.hijos.length > 0;
             return (
               <div key={item.id} className="relative group">

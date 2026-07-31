@@ -30,6 +30,13 @@ export class UsersRepository {
     });
   }
 
+  desactivar(id: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { activo: false },
+    });
+  }
+
   // --- Direcciones ---
   listarDirecciones(userId: string) {
     return this.prisma.direccion.findMany({

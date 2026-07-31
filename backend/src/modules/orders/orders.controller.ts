@@ -34,6 +34,12 @@ export class OrdersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('mis-ordenes')
+  misOrdenes(@Req() req: any) {
+    return this.service.misOrdenes(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.service.findOne(id);

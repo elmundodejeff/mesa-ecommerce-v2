@@ -78,6 +78,10 @@ export class UsersService {
     return this.repo.listarDirecciones(userId);
   }
 
+  desactivar(id: string) {
+    return this.repo.desactivar(id);
+  }
+
   async crearDireccion(userId: string, data: {
     alias: string; calle: string; ciudad: string; region: string; esPrincipal?: boolean;
   }) {

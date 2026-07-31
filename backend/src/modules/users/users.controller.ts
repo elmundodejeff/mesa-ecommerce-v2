@@ -124,4 +124,12 @@ export class UsersController {
     return this.service.borrarDireccion(req.user.id, id);
   }
 
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/desactivar')
+  async desactivar(@Req() req: ReqConUsuario) {
+    await this.service.desactivar(req.user.id);
+    return { ok: true };
+  }
+
 }

@@ -211,4 +211,13 @@ export class OrdersRepository {
       data: { estado },
     });
   }
+
+  misOrdenes(userId: string) {
+    return this.prisma.orden.findMany({
+      where: { userId },
+      include: { items: true },
+      orderBy: { fecha: "desc" },
+    });
+  }
+
 }

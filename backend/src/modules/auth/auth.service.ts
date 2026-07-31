@@ -26,6 +26,11 @@ export class AuthService {
     if (!ok) {
       throw new UnauthorizedException('Credenciales invalidas');
     }
+    if (user.activo === false) {
+      throw new UnauthorizedException(
+        "Esta cuenta esta desactivada. Contacta al administrador.",
+      );
+    }
     return this.firmarToken(user);
   }
 

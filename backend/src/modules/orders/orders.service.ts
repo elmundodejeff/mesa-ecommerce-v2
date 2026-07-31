@@ -22,6 +22,10 @@ export class OrdersService {
     return this.repo.crearOrden({ ...dto, userId });
   }
 
+  misOrdenes(userId: string) {
+    return this.repo.misOrdenes(userId);
+  }
+
   async cambiarEstado(id: number, estado: string) {
     await this.findOne(id);
     return this.repo.updateEstado(id, estado);

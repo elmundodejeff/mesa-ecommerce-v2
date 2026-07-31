@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, apiUpload } from "@/lib/api";
 import SeccionDirecciones from "@/components/SeccionDirecciones";
+import SeccionHistorial from "@/components/SeccionHistorial";
+import SeccionPeligro from "@/components/SeccionPeligro";
 import {
   obtenerToken,
   obtenerUsuario,
@@ -199,6 +201,10 @@ export default function CuentaPage() {
         </section>
 
         <SeccionDirecciones />
+
+        <SeccionHistorial />
+
+        <SeccionPeligro />
       </div>
     </div>
   );
