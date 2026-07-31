@@ -70,54 +70,51 @@ export default function AdminBanners() {
   }
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Banners</h2>
+    <>
+      <div className="admin-header">
+        <div>
+          <h1 className="admin-title">Banners</h1>
+          <p className="admin-subtitle">Carrusel principal de la home</p>
+        </div>
+      </div>
 
-      <form onSubmit={crear} className="bg-white rounded-lg shadow p-6 space-y-3">
-        <input
-          placeholder="URL de la imagen"
-          value={imagen}
-          onChange={(e) => setImagen(e.target.value)}
-          required
-          className="w-full border rounded px-3 py-2"
-        />
-        <div className="grid grid-cols-2 gap-3">
+      <form onSubmit={crear} className="admin-card space-y-3">
+        <div>
+          <label className="admin-label">URL de la imagen</label>
           <input
-            placeholder="Titulo (opcional)"
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
-          <input
-            placeholder="Subtitulo (opcional)"
-            value={subtitulo}
-            onChange={(e) => setSubtitulo(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
-          <input
-            placeholder="Enlace (opcional)"
-            value={enlace}
-            onChange={(e) => setEnlace(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
-          <input
-            placeholder="Orden"
-            type="number"
-            value={orden}
-            onChange={(e) => setOrden(e.target.value)}
-            className="border rounded px-3 py-2"
+            placeholder="https://..."
+            value={imagen}
+            onChange={(e) => setImagen(e.target.value)}
+            required
+            className="admin-input"
           />
         </div>
-        <button className="bg-emerald-700 text-white px-6 py-2 rounded hover:bg-emerald-800">
-          Agregar banner
-        </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="admin-label">Título (opcional)</label>
+            <input placeholder="Título" value={titulo} onChange={(e) => setTitulo(e.target.value)} className="admin-input" />
+          </div>
+          <div>
+            <label className="admin-label">Subtítulo (opcional)</label>
+            <input placeholder="Subtítulo" value={subtitulo} onChange={(e) => setSubtitulo(e.target.value)} className="admin-input" />
+          </div>
+          <div>
+            <label className="admin-label">Enlace (opcional)</label>
+            <input placeholder="/tienda" value={enlace} onChange={(e) => setEnlace(e.target.value)} className="admin-input" />
+          </div>
+          <div>
+            <label className="admin-label">Orden</label>
+            <input placeholder="0" type="number" value={orden} onChange={(e) => setOrden(e.target.value)} className="admin-input" />
+          </div>
+        </div>
+        <button className="btn-primario">Agregar banner</button>
       </form>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {items.map((b) => (
-          <div key={b.id} className="bg-white rounded-lg shadow overflow-hidden">
+          <div key={b.id} className="admin-card p-0 overflow-hidden">
             <div className="h-32 bg-gray-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -129,26 +126,19 @@ export default function AdminBanners() {
                 }}
               />
             </div>
-            <div className="p-3 flex justify-between items-center">
+            <div className="p-4 flex justify-between items-center">
               <div>
-                <p className="font-medium text-gray-800">
-                  {b.titulo || "(sin titulo)"}
-                </p>
+                <p className="font-medium text-gray-800">{b.titulo || "(sin título)"}</p>
                 <p className="text-xs text-gray-400">Orden: {b.orden}</p>
               </div>
-              <button
-                onClick={() => eliminar(b.id)}
-                className="text-red-600 hover:underline text-sm"
-              >
-                Eliminar
-              </button>
+              <button onClick={() => eliminar(b.id)} className="link-peligro">Eliminar</button>
             </div>
           </div>
         ))}
         {items.length === 0 && (
-          <p className="text-gray-400">Sin banners aun.</p>
+          <p className="text-gray-400 text-sm">Sin banners aún.</p>
         )}
       </div>
-    </div>
+    </>
   );
 }

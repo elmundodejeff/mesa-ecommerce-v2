@@ -146,7 +146,9 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      <main className="flex-1 p-8 overflow-auto">{children}</main>
+      <main className="flex-1 p-6 lg:p-8 overflow-auto">
+        <div className="admin-page">{children}</div>
+      </main>
     </div>
   );
 }

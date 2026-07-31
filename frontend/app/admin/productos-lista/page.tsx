@@ -105,76 +105,101 @@ export default function AdminProductos() {
   }
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-900">Productos</h1>
+    <>
+      <div className="admin-header">
+        <div>
+          <h1 className="admin-title">Productos</h1>
+          <p className="admin-subtitle">Gestiona el catálogo de la tienda</p>
+        </div>
+      </div>
 
-      <section className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900">Nuevo producto</h2>
-        <form onSubmit={crear} className="grid grid-cols-2 gap-4">
-          <input placeholder="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} required className="border rounded px-3 py-2" />
-          <input placeholder="Precio" type="number" value={precio} onChange={(e) => setPrecio(e.target.value)} required className="border rounded px-3 py-2" />
-          <input placeholder="Stock" type="number" value={stock} onChange={(e) => setStock(e.target.value)} required className="border rounded px-3 py-2" />
-          <select value={idioma} onChange={(e) => setIdioma(e.target.value)} className="border rounded px-3 py-2">
-            <option value="">Idioma (opcional)</option>
-            {IDIOMAS.map((i) => (<option key={i} value={i}>{i}</option>))}
-          </select>
-          <input placeholder="Descripcion (opcional)" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="border rounded px-3 py-2 col-span-2" />
-          <div className="col-span-2 border-t pt-4 mt-1">
+      <section className="admin-card">
+        <h2 className="admin-card-title">Nuevo producto</h2>
+        <form onSubmit={crear} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="admin-label">Nombre</label>
+            <input placeholder="Ej: Catan" value={nombre} onChange={(e) => setNombre(e.target.value)} required className="admin-input" />
+          </div>
+          <div>
+            <label className="admin-label">Precio</label>
+            <input placeholder="0" type="number" value={precio} onChange={(e) => setPrecio(e.target.value)} required className="admin-input" />
+          </div>
+          <div>
+            <label className="admin-label">Stock</label>
+            <input placeholder="0" type="number" value={stock} onChange={(e) => setStock(e.target.value)} required className="admin-input" />
+          </div>
+          <div>
+            <label className="admin-label">Idioma (opcional)</label>
+            <select value={idioma} onChange={(e) => setIdioma(e.target.value)} className="admin-input">
+              <option value="">Sin especificar</option>
+              {IDIOMAS.map((i) => (<option key={i} value={i}>{i}</option>))}
+            </select>
+          </div>
+          <div className="md:col-span-2">
+            <label className="admin-label">Descripción (opcional)</label>
+            <input placeholder="Breve descripción del producto" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="admin-input" />
+          </div>
+          <div className="md:col-span-2 border-t border-gray-100 pt-4 mt-1">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={preventa} onChange={(e) => setPreventa(e.target.checked)} className="w-4 h-4" />
+              <input type="checkbox" checked={preventa} onChange={(e) => setPreventa(e.target.checked)} className="w-4 h-4 accent-[var(--color-marca)]" />
               <span className="text-sm font-medium text-gray-700">Es preventa</span>
             </label>
             {preventa && (
-              <div className="grid grid-cols-2 gap-4 mt-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Fecha de lanzamiento</label>
-                  <input type="date" value={fechaLanzamiento} onChange={(e) => setFechaLanzamiento(e.target.value)} className="w-full border rounded px-3 py-2" />
+                  <label className="admin-label">Fecha de lanzamiento</label>
+                  <input type="date" value={fechaLanzamiento} onChange={(e) => setFechaLanzamiento(e.target.value)} className="admin-input" />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Texto de preventa</label>
-                  <input placeholder="Reserva ahora, llega el..." value={textoPreventa} onChange={(e) => setTextoPreventa(e.target.value)} className="w-full border rounded px-3 py-2" />
+                  <label className="admin-label">Texto de preventa</label>
+                  <input placeholder="Reserva ahora, llega el..." value={textoPreventa} onChange={(e) => setTextoPreventa(e.target.value)} className="admin-input" />
                 </div>
               </div>
             )}
           </div>
-          <div className="col-span-2">
+          <div className="md:col-span-2">
             {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
-            <button type="submit" disabled={cargando} className="text-white px-6 py-2 btn-pill bg-marca disabled:opacity-50">
+            <button type="submit" disabled={cargando} className="btn-primario">
               {cargando ? "Guardando..." : "Crear producto"}
             </button>
           </div>
         </form>
       </section>
 
-      <section className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900">Productos ({productos.length})</h2>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-left">
-              <th className="py-2">ID</th>
-              <th className="py-2">Nombre</th>
-              <th className="py-2">Precio</th>
-              <th className="py-2">Stock</th>
-              <th className="py-2">Idioma</th>
-              <th className="py-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {productos.map((p) => (
-              <tr key={p.id} className="border-b">
-                <td className="py-2">{p.id}</td>
-                <td className="py-2">{p.nombre}</td>
-                <td className="py-2">${p.precio.toLocaleString("es-CL")}</td>
-                <td className="py-2">{p.stock}</td>
-                <td className="py-2">{p.idioma || "-"}</td>
-                <td className="py-2 text-right space-x-3">
-                  <button onClick={() => setEditando(p)} className="text-marca hover:underline">Editar</button>
-                  <button onClick={() => eliminar(p.id)} className="text-red-600 hover:underline">Eliminar</button>
-                </td>
+      <section className="admin-card">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="admin-card-title mb-0">Productos</h2>
+          <span className="admin-badge">{productos.length}</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="admin-tabla">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Idioma</th>
+                <th></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {productos.map((p) => (
+                <tr key={p.id}>
+                  <td className="text-gray-400">{p.id}</td>
+                  <td className="font-medium text-gray-800">{p.nombre}</td>
+                  <td>${p.precio.toLocaleString("es-CL")}</td>
+                  <td>{p.stock}</td>
+                  <td>{p.idioma || "-"}</td>
+                  <td className="text-right space-x-4 whitespace-nowrap">
+                    <button onClick={() => setEditando(p)} className="link-accion">Editar</button>
+                    <button onClick={() => eliminar(p.id)} className="link-peligro">Eliminar</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       {editando && (
@@ -186,7 +211,7 @@ export default function AdminProductos() {
           onGuardado={async () => { setEditando(null); await cargar(); }}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -254,24 +279,39 @@ function ModalEditar({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onCerrar}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Editar: {producto.nombre}</h2>
+        <h2 className="admin-card-title">Editar: {producto.nombre}</h2>
         <div className="space-y-3">
-          <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" className="w-full border rounded px-3 py-2" />
-          <div className="grid grid-cols-2 gap-3">
-            <input value={precio} onChange={(e) => setPrecio(e.target.value)} type="number" placeholder="Precio" className="border rounded px-3 py-2" />
-            <input value={stock} onChange={(e) => setStock(e.target.value)} type="number" placeholder="Stock" className="border rounded px-3 py-2" />
+          <div>
+            <label className="admin-label">Nombre</label>
+            <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" className="admin-input" />
           </div>
-          <select value={idioma} onChange={(e) => setIdioma(e.target.value)} className="w-full border rounded px-3 py-2">
-            <option value="">Idioma (opcional)</option>
-            {IDIOMAS.map((i) => (<option key={i} value={i}>{i}</option>))}
-          </select>
-          <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Descripcion" rows={3} className="w-full border rounded px-3 py-2" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="admin-label">Precio</label>
+              <input value={precio} onChange={(e) => setPrecio(e.target.value)} type="number" placeholder="Precio" className="admin-input" />
+            </div>
+            <div>
+              <label className="admin-label">Stock</label>
+              <input value={stock} onChange={(e) => setStock(e.target.value)} type="number" placeholder="Stock" className="admin-input" />
+            </div>
+          </div>
+          <div>
+            <label className="admin-label">Idioma</label>
+            <select value={idioma} onChange={(e) => setIdioma(e.target.value)} className="admin-input">
+              <option value="">Sin especificar</option>
+              {IDIOMAS.map((i) => (<option key={i} value={i}>{i}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="admin-label">Descripción</label>
+            <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Descripción" rows={3} className="admin-input" />
+          </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Categorias</p>
+            <p className="admin-label">Categorías</p>
             <div className="flex flex-wrap gap-2">
               {categorias.map((c) => (
-                <button key={c.id} type="button" onClick={() => toggle(catIds, setCatIds, c.id)} className={`text-sm px-3 py-1 rounded-full border ${catIds.includes(c.id) ? "text-white bg-marca border-marca" : "text-gray-600"}`}>
+                <button key={c.id} type="button" onClick={() => toggle(catIds, setCatIds, c.id)} className={`text-sm px-3 py-1 rounded-full border transition ${catIds.includes(c.id) ? "text-white bg-marca border-marca" : "text-gray-600 border-gray-300"}`}>
                   {c.nombre}
                 </button>
               ))}
@@ -279,30 +319,30 @@ function ModalEditar({
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Secciones</p>
+            <p className="admin-label">Secciones</p>
             <div className="flex flex-wrap gap-2">
               {secciones.map((s) => (
-                <button key={s.id} type="button" onClick={() => toggle(secIds, setSecIds, s.id)} className={`text-sm px-3 py-1 rounded-full border ${secIds.includes(s.id) ? "text-white bg-marca border-marca" : "text-gray-600"}`}>
+                <button key={s.id} type="button" onClick={() => toggle(secIds, setSecIds, s.id)} className={`text-sm px-3 py-1 rounded-full border transition ${secIds.includes(s.id) ? "text-white bg-marca border-marca" : "text-gray-600 border-gray-300"}`}>
                   {s.nombre}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="border-t pt-3">
+          <div className="border-t border-gray-100 pt-3">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={preventa} onChange={(e) => setPreventa(e.target.checked)} className="w-4 h-4" />
+              <input type="checkbox" checked={preventa} onChange={(e) => setPreventa(e.target.checked)} className="w-4 h-4 accent-[var(--color-marca)]" />
               <span className="text-sm font-medium text-gray-700">Es preventa</span>
             </label>
             {preventa && (
               <div className="space-y-3 mt-3">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Fecha de lanzamiento</label>
-                  <input type="date" value={fechaLanzamiento} onChange={(e) => setFechaLanzamiento(e.target.value)} className="w-full border rounded px-3 py-2" />
+                  <label className="admin-label">Fecha de lanzamiento</label>
+                  <input type="date" value={fechaLanzamiento} onChange={(e) => setFechaLanzamiento(e.target.value)} className="admin-input" />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Texto de preventa</label>
-                  <input placeholder="Reserva ahora, llega el..." value={textoPreventa} onChange={(e) => setTextoPreventa(e.target.value)} className="w-full border rounded px-3 py-2" />
+                  <label className="admin-label">Texto de preventa</label>
+                  <input placeholder="Reserva ahora, llega el..." value={textoPreventa} onChange={(e) => setTextoPreventa(e.target.value)} className="admin-input" />
                 </div>
               </div>
             )}
@@ -312,10 +352,10 @@ function ModalEditar({
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <div className="flex gap-3 pt-2">
-            <button onClick={guardar} disabled={guardando} className="flex-1 text-white py-2 btn-pill bg-marca">
+            <button onClick={guardar} disabled={guardando} className="btn-primario flex-1">
               {guardando ? "Guardando..." : "Guardar cambios"}
             </button>
-            <button onClick={onCerrar} className="px-6 border rounded text-gray-600">Cancelar</button>
+            <button onClick={onCerrar} className="btn-secundario">Cancelar</button>
           </div>
         </div>
       </div>
@@ -342,7 +382,7 @@ function SeccionImagenes({
       setImagenes(actualizado.imagenes || []);
       onCambio();
     } catch {
-      // silencioso: el listado principal se recarga igual al cerrar
+      // silencioso
     }
   }
 
@@ -377,7 +417,7 @@ function SeccionImagenes({
 
   return (
     <div>
-      <p className="text-sm font-medium text-gray-700 mb-2">Imagenes</p>
+      <p className="admin-label">Imágenes</p>
       {imagenes.length > 0 ? (
         <div className="grid grid-cols-4 gap-2 mb-3">
           {imagenes.map((img) => (
@@ -399,10 +439,10 @@ function SeccionImagenes({
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-400 mb-3">Sin imagenes aun.</p>
+        <p className="text-sm text-gray-400 mb-3">Sin imágenes aun.</p>
       )}
-      <label className="inline-block cursor-pointer text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded border">
-        {subiendo ? "Subiendo..." : "+ Agregar imagenes"}
+      <label className="btn-secundario cursor-pointer">
+        {subiendo ? "Subiendo..." : "+ Agregar imágenes"}
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"

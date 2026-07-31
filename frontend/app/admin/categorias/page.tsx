@@ -78,27 +78,30 @@ export default function AdminCategorias() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Categorias</h2>
+    <>
+      <div className="admin-header">
+        <div>
+          <h1 className="admin-title">Categorías</h1>
+          <p className="admin-subtitle">Organiza los productos por categoría</p>
+        </div>
+      </div>
 
-      <form onSubmit={crear} className="bg-white rounded-lg shadow p-6 flex gap-3">
+      <form onSubmit={crear} className="admin-card flex gap-3">
         <input
-          placeholder="Nombre de la categoria"
+          placeholder="Nombre de la categoría"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
           required
-          className="flex-1 border rounded px-3 py-2"
+          className="admin-input flex-1"
         />
-        <button className="text-white px-6 py-2 btn-pill bg-marca">
-          Agregar
-        </button>
+        <button className="btn-primario shrink-0">Agregar</button>
       </form>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
-      <div className="bg-white rounded-lg shadow divide-y">
+      <div className="admin-card p-0 overflow-hidden">
         {items.map((c) => (
-          <div key={c.id} className="flex justify-between items-center p-4">
+          <div key={c.id} className="flex justify-between items-center px-6 py-4 border-b border-gray-50 last:border-0">
             {editId === c.id ? (
               <>
                 <input
@@ -109,21 +112,11 @@ export default function AdminCategorias() {
                     if (e.key === "Escape") cancelarEdicion();
                   }}
                   autoFocus
-                  className="flex-1 border rounded px-3 py-1.5 mr-3"
+                  className="admin-input flex-1 mr-3"
                 />
-                <div className="flex gap-3 text-sm">
-                  <button
-                    onClick={() => guardarEdicion(c.id)}
-                    className="text-marca hover:underline"
-                  >
-                    Guardar
-                  </button>
-                  <button
-                    onClick={cancelarEdicion}
-                    className="text-gray-500 hover:underline"
-                  >
-                    Cancelar
-                  </button>
+                <div className="flex gap-4 shrink-0">
+                  <button onClick={() => guardarEdicion(c.id)} className="link-accion">Guardar</button>
+                  <button onClick={cancelarEdicion} className="text-sm text-gray-500 hover:opacity-70">Cancelar</button>
                 </div>
               </>
             ) : (
@@ -136,28 +129,18 @@ export default function AdminCategorias() {
                     </span>
                   )}
                 </span>
-                <div className="flex gap-4 text-sm">
-                  <button
-                    onClick={() => empezarEdicion(c)}
-                    className="text-marca hover:underline"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => eliminar(c.id)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Eliminar
-                  </button>
+                <div className="flex gap-4 shrink-0">
+                  <button onClick={() => empezarEdicion(c)} className="link-accion">Editar</button>
+                  <button onClick={() => eliminar(c.id)} className="link-peligro">Eliminar</button>
                 </div>
               </>
             )}
           </div>
         ))}
         {items.length === 0 && (
-          <p className="p-4 text-gray-400">Sin categorias aun.</p>
+          <p className="px-6 py-4 text-gray-400 text-sm">Sin categorías aún.</p>
         )}
       </div>
-    </div>
+    </>
   );
 }

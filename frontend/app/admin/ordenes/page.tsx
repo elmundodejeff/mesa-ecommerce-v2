@@ -62,85 +62,81 @@ export default function AdminOrdenes() {
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-gray-900">
-        Ordenes ({ordenes.length})
-      </h2>
-      {error && <p className="text-red-600">{error}</p>}
+    <>
+      <div className="admin-header">
+        <div>
+          <h1 className="admin-title">Órdenes</h1>
+          <p className="admin-subtitle">Pedidos y su estado</p>
+        </div>
+        <span className="admin-badge">{ordenes.length}</span>
+      </div>
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100 text-left">
-            <tr>
-              <th className="p-3">#</th>
-              <th className="p-3">Fecha</th>
-              <th className="p-3">Cliente</th>
-              <th className="p-3">Total</th>
-              <th className="p-3">Estado</th>
-              <th className="p-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {ordenes.map((o) => (
-              <Fragment key={o.id}>
-                <tr className="border-b text-gray-800">
-                  <td className="p-3 font-medium">{o.id}</td>
-                  <td className="p-3">
-                    {new Date(o.fecha).toLocaleDateString("es-CL")}
-                  </td>
-                  <td className="p-3">{o.nombreEnvio || "Invitado"}</td>
-                  <td className="p-3">
-                    ${o.total.toLocaleString("es-CL")}
-                  </td>
-                  <td className="p-3">
-                    <select
-                      value={o.estado}
-                      onChange={(e) => cambiarEstado(o.id, e.target.value)}
-                      className="border rounded px-2 py-1"
-                    >
-                      {ESTADOS.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="p-3 text-right">
-                    <button
-                      onClick={() =>
-                        setAbierta(abierta === o.id ? null : o.id)
-                      }
-                      className="text-emerald-700 hover:underline"
-                    >
-                      {abierta === o.id ? "Ocultar" : "Ver items"}
-                    </button>
-                  </td>
-                </tr>
-                {abierta === o.id && (
-                  <tr className="bg-gray-50">
-                    <td colSpan={6} className="p-3">
-                      <ul className="text-gray-700 space-y-1">
-                        {o.items.map((it) => (
-                          <li key={it.id}>
-                            {it.cantidad} x {it.nombre} - $
-                            {it.precio.toLocaleString("es-CL")}
-                          </li>
+      <div className="admin-card p-0 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="admin-tabla">
+            <thead>
+              <tr>
+                <th className="pl-6">#</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {ordenes.map((o) => (
+                <Fragment key={o.id}>
+                  <tr>
+                    <td className="pl-6 font-medium text-gray-800">{o.id}</td>
+                    <td>{new Date(o.fecha).toLocaleDateString("es-CL")}</td>
+                    <td>{o.nombreEnvio || "Invitado"}</td>
+                    <td>${o.total.toLocaleString("es-CL")}</td>
+                    <td>
+                      <select
+                        value={o.estado}
+                        onChange={(e) => cambiarEstado(o.id, e.target.value)}
+                        className="admin-input py-1.5 w-auto"
+                      >
+                        {ESTADOS.map((s) => (
+                          <option key={s} value={s}>{s}</option>
                         ))}
-                        {o.descuentoMonto > 0 && (
-                          <li className="text-emerald-700">
-                            Descuento ({o.descuentoCodigo}): -$
-                            {o.descuentoMonto.toLocaleString("es-CL")}
-                          </li>
-                        )}
-                      </ul>
+                      </select>
+                    </td>
+                    <td className="text-right pr-6">
+                      <button
+                        onClick={() => setAbierta(abierta === o.id ? null : o.id)}
+                        className="link-accion"
+                      >
+                        {abierta === o.id ? "Ocultar" : "Ver items"}
+                      </button>
                     </td>
                   </tr>
-                )}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
+                  {abierta === o.id && (
+                    <tr className="bg-gray-50">
+                      <td colSpan={6} className="px-6 py-3">
+                        <ul className="text-sm text-gray-700 space-y-1">
+                          {o.items.map((it) => (
+                            <li key={it.id}>
+                              {it.cantidad} x {it.nombre} - ${it.precio.toLocaleString("es-CL")}
+                            </li>
+                          ))}
+                          {o.descuentoMonto > 0 && (
+                            <li className="text-marca font-medium">
+                              Descuento ({o.descuentoCodigo}): -${o.descuentoMonto.toLocaleString("es-CL")}
+                            </li>
+                          )}
+                        </ul>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

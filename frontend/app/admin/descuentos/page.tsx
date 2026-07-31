@@ -68,94 +68,94 @@ export default function AdminDescuentos() {
   }
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">
-        Codigos de descuento
-      </h2>
+    <>
+      <div className="admin-header">
+        <div>
+          <h1 className="admin-title">Códigos de descuento</h1>
+          <p className="admin-subtitle">Cupones para el checkout</p>
+        </div>
+      </div>
 
-      <form
-        onSubmit={crear}
-        className="bg-white rounded-lg shadow p-6 grid grid-cols-4 gap-3"
-      >
-        <input
-          placeholder="Codigo"
-          value={codigo}
-          onChange={(e) => setCodigo(e.target.value.toUpperCase())}
-          required
-          className="border rounded px-3 py-2"
-        />
-        <select
-          value={tipo}
-          onChange={(e) => setTipo(e.target.value)}
-          className="border rounded px-3 py-2"
-        >
-          <option value="porcentaje">Porcentaje</option>
-          <option value="monto">Monto fijo</option>
-        </select>
-        <input
-          placeholder={tipo === "porcentaje" ? "% (ej 30)" : "$ (ej 5000)"}
-          type="number"
-          value={valor}
-          onChange={(e) => setValor(e.target.value)}
-          required
-          className="border rounded px-3 py-2"
-        />
-        <input
-          type="date"
-          value={vigencia}
-          onChange={(e) => setVigencia(e.target.value)}
-          required
-          className="border rounded px-3 py-2"
-        />
-        <button className="col-span-4 bg-emerald-700 text-white px-6 py-2 rounded hover:bg-emerald-800">
-          Crear codigo
-        </button>
+      <form onSubmit={crear} className="admin-card">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div>
+            <label className="admin-label">Código</label>
+            <input
+              placeholder="VERANO30"
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value.toUpperCase())}
+              required
+              className="admin-input"
+            />
+          </div>
+          <div>
+            <label className="admin-label">Tipo</label>
+            <select value={tipo} onChange={(e) => setTipo(e.target.value)} className="admin-input">
+              <option value="porcentaje">Porcentaje</option>
+              <option value="monto">Monto fijo</option>
+            </select>
+          </div>
+          <div>
+            <label className="admin-label">Valor</label>
+            <input
+              placeholder={tipo === "porcentaje" ? "% (ej 30)" : "$ (ej 5000)"}
+              type="number"
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+              required
+              className="admin-input"
+            />
+          </div>
+          <div>
+            <label className="admin-label">Vigencia</label>
+            <input type="date" value={vigencia} onChange={(e) => setVigencia(e.target.value)} required className="admin-input" />
+          </div>
+        </div>
+        <button className="btn-primario mt-4">Crear código</button>
       </form>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100 text-left">
-            <tr>
-              <th className="p-3">Codigo</th>
-              <th className="p-3">Tipo</th>
-              <th className="p-3">Valor</th>
-              <th className="p-3">Vigencia</th>
-              <th className="p-3">Usos</th>
-              <th className="p-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((d) => (
-              <tr key={d.id} className="border-b text-gray-800">
-                <td className="p-3 font-medium">{d.codigo}</td>
-                <td className="p-3">{d.tipo}</td>
-                <td className="p-3">
-                  {d.tipo === "porcentaje"
-                    ? `${d.valor}%`
-                    : `$${d.valor.toLocaleString("es-CL")}`}
-                </td>
-                <td className="p-3">
-                  {new Date(d.vigencia).toLocaleDateString("es-CL")}
-                </td>
-                <td className="p-3">
-                  {d.usos}
-                  {d.maxUsos ? `/${d.maxUsos}` : ""}
-                </td>
-                <td className="p-3 text-right">
-                  <button
-                    onClick={() => eliminar(d.id)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Eliminar
-                  </button>
-                </td>
+      <div className="admin-card p-0 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="admin-tabla">
+            <thead>
+              <tr>
+                <th className="pl-6">Código</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Vigencia</th>
+                <th>Usos</th>
+                <th></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.map((d) => (
+                <tr key={d.id}>
+                  <td className="pl-6 font-medium text-gray-800">{d.codigo}</td>
+                  <td>{d.tipo}</td>
+                  <td>
+                    {d.tipo === "porcentaje"
+                      ? `${d.valor}%`
+                      : `$${d.valor.toLocaleString("es-CL")}`}
+                  </td>
+                  <td>{new Date(d.vigencia).toLocaleDateString("es-CL")}</td>
+                  <td>
+                    {d.usos}
+                    {d.maxUsos ? `/${d.maxUsos}` : ""}
+                  </td>
+                  <td className="text-right pr-6">
+                    <button onClick={() => eliminar(d.id)} className="link-peligro">Eliminar</button>
+                  </td>
+                </tr>
+              ))}
+              {items.length === 0 && (
+                <tr><td colSpan={6} className="pl-6 text-gray-400">Sin códigos aún.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

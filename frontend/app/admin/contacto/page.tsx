@@ -50,24 +50,26 @@ export default function AdminContacto() {
   const sinLeer = items.filter((m) => !m.leido).length;
 
   return (
-    <div className="max-w-3xl space-y-4">
-      <h2 className="text-xl font-semibold text-gray-900">
-        Mensajes de contacto
+    <>
+      <div className="admin-header">
+        <div>
+          <h1 className="admin-title">Mensajes de contacto</h1>
+          <p className="admin-subtitle">Bandeja de entrada del formulario</p>
+        </div>
         {sinLeer > 0 && (
-          <span className="ml-2 text-sm bg-red-500 text-white px-2 py-0.5 rounded-full">
+          <span className="admin-badge" style={{ background: "#fee2e2", color: "#dc2626" }}>
             {sinLeer} sin leer
           </span>
         )}
-      </h2>
-      {error && <p className="text-red-600">{error}</p>}
+      </div>
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
       <div className="space-y-3">
         {items.map((m) => (
           <div
             key={m.id}
-            className={`bg-white rounded-lg shadow p-4 ${
-              m.leido ? "opacity-60" : "border-l-4 border-emerald-500"
-            }`}
+            className={`admin-card ${m.leido ? "opacity-60" : ""}`}
+            style={!m.leido ? { borderLeft: "3px solid var(--color-marca)" } : {}}
           >
             <div className="flex justify-between items-start">
               <div>
@@ -81,32 +83,22 @@ export default function AdminContacto() {
                   {new Date(m.fecha).toLocaleString("es-CL")}
                 </p>
               </div>
-              <div className="flex gap-3 text-sm shrink-0">
+              <div className="flex gap-4 shrink-0">
                 {!m.leido && (
-                  <button
-                    onClick={() => marcarLeido(m.id)}
-                    className="text-emerald-700 hover:underline"
-                  >
-                    Marcar leido
+                  <button onClick={() => marcarLeido(m.id)} className="link-accion">
+                    Marcar leído
                   </button>
                 )}
-                <button
-                  onClick={() => eliminar(m.id)}
-                  className="text-red-600 hover:underline"
-                >
-                  Eliminar
-                </button>
+                <button onClick={() => eliminar(m.id)} className="link-peligro">Eliminar</button>
               </div>
             </div>
-            <p className="text-gray-700 mt-2 whitespace-pre-wrap">
-              {m.mensaje}
-            </p>
+            <p className="text-gray-700 mt-2 whitespace-pre-wrap">{m.mensaje}</p>
           </div>
         ))}
         {items.length === 0 && (
-          <p className="text-gray-400">Sin mensajes.</p>
+          <p className="text-gray-400 text-sm">Sin mensajes.</p>
         )}
       </div>
-    </div>
+    </>
   );
 }

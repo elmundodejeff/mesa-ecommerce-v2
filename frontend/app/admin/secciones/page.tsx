@@ -105,34 +105,43 @@ export default function AdminSecciones() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Secciones</h2>
+    <>
+      <div className="admin-header">
+        <div>
+          <h1 className="admin-title">Secciones</h1>
+          <p className="admin-subtitle">Bloques de la home ordenables</p>
+        </div>
+      </div>
 
-      <form onSubmit={crear} className="bg-white rounded-lg shadow p-6 flex gap-3">
-        <input
-          placeholder="Nombre"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          required
-          className="flex-1 border rounded px-3 py-2"
-        />
-        <input
-          placeholder="Orden"
-          type="number"
-          value={orden}
-          onChange={(e) => setOrden(e.target.value)}
-          className="w-24 border rounded px-3 py-2"
-        />
-        <button className="text-white px-6 py-2 btn-pill bg-marca">
-          Agregar
-        </button>
+      <form onSubmit={crear} className="admin-card flex flex-wrap gap-3 items-end">
+        <div className="flex-1 min-w-[200px]">
+          <label className="admin-label">Nombre</label>
+          <input
+            placeholder="Ej: Novedades"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            required
+            className="admin-input"
+          />
+        </div>
+        <div className="w-24">
+          <label className="admin-label">Orden</label>
+          <input
+            placeholder="0"
+            type="number"
+            value={orden}
+            onChange={(e) => setOrden(e.target.value)}
+            className="admin-input"
+          />
+        </div>
+        <button className="btn-primario shrink-0">Agregar</button>
       </form>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
-      <div className="bg-white rounded-lg shadow divide-y">
+      <div className="admin-card p-0 overflow-hidden">
         {items.map((s) => (
-          <div key={s.id} className="flex justify-between items-center p-4">
+          <div key={s.id} className="flex justify-between items-center px-6 py-4 border-b border-gray-50 last:border-0">
             {editId === s.id ? (
               <>
                 <div className="flex gap-2 flex-1 mr-3">
@@ -140,7 +149,7 @@ export default function AdminSecciones() {
                     type="number"
                     value={editOrden}
                     onChange={(e) => setEditOrden(e.target.value)}
-                    className="w-20 border rounded px-2 py-1.5"
+                    className="admin-input w-20"
                     placeholder="Orden"
                   />
                   <input
@@ -151,22 +160,12 @@ export default function AdminSecciones() {
                       if (e.key === "Escape") cancelarEdicion();
                     }}
                     autoFocus
-                    className="flex-1 border rounded px-3 py-1.5"
+                    className="admin-input flex-1"
                   />
                 </div>
-                <div className="flex gap-3 text-sm">
-                  <button
-                    onClick={() => guardarEdicion(s.id)}
-                    className="text-marca hover:underline"
-                  >
-                    Guardar
-                  </button>
-                  <button
-                    onClick={cancelarEdicion}
-                    className="text-gray-500 hover:underline"
-                  >
-                    Cancelar
-                  </button>
+                <div className="flex gap-4 shrink-0">
+                  <button onClick={() => guardarEdicion(s.id)} className="link-accion">Guardar</button>
+                  <button onClick={cancelarEdicion} className="text-sm text-gray-500 hover:opacity-70">Cancelar</button>
                 </div>
               </>
             ) : (
@@ -175,37 +174,24 @@ export default function AdminSecciones() {
                   <span className="text-gray-400 text-sm mr-2">#{s.orden}</span>
                   {s.nombre}
                   {!s.activa && (
-                    <span className="text-amber-600 text-sm ml-2">(inactiva)</span>
+                    <span className="admin-badge ml-2" style={{ background: "#fef3c7", color: "#b45309" }}>inactiva</span>
                   )}
                 </span>
-                <div className="flex gap-4 text-sm">
-                  <button
-                    onClick={() => empezarEdicion(s)}
-                    className="text-marca hover:underline"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => toggleActiva(s)}
-                    className="text-marca hover:underline"
-                  >
+                <div className="flex gap-4 shrink-0">
+                  <button onClick={() => empezarEdicion(s)} className="link-accion">Editar</button>
+                  <button onClick={() => toggleActiva(s)} className="link-accion">
                     {s.activa ? "Desactivar" : "Activar"}
                   </button>
-                  <button
-                    onClick={() => eliminar(s.id)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Eliminar
-                  </button>
+                  <button onClick={() => eliminar(s.id)} className="link-peligro">Eliminar</button>
                 </div>
               </>
             )}
           </div>
         ))}
         {items.length === 0 && (
-          <p className="p-4 text-gray-400">Sin secciones aun.</p>
+          <p className="px-6 py-4 text-gray-400 text-sm">Sin secciones aún.</p>
         )}
       </div>
-    </div>
+    </>
   );
 }
