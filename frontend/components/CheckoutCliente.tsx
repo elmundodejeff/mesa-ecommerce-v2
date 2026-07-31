@@ -28,6 +28,19 @@ export default function CheckoutCliente() {
   const [direccion, setDireccion] = useState("");
   const [ciudad, setCiudad] = useState("");
   const [codigo, setCodigo] = useState("");
+
+  // Pre-cargar codigo de descuento aplicado en el carrito lateral
+  useEffect(() => {
+    const guardado = localStorage.getItem("mesa_descuento");
+    if (guardado) {
+      try {
+        const d = JSON.parse(guardado);
+        if (d.codigo) setCodigo(d.codigo);
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
   const [puntosAUsar, setPuntosAUsar] = useState("");
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
@@ -68,6 +81,7 @@ export default function CheckoutCliente() {
       });
       setOrden(resp);
       vaciar();
+      localStorage.removeItem("mesa_descuento");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al procesar");
     } finally {

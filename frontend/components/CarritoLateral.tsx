@@ -1,10 +1,74 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { api } from "@/lib/api";
 import { useCarrito } from "@/lib/carrito";
+
+interface Validacion {
+  valido: boolean;
+  tipo?: string;
+  valor?: number;
+  codigoId?: number;
+}
+
+const DESC_KEY = "mesa_descuento";
 
 export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
   const { items, cambiarCantidad, quitar, total } = useCarrito();
+  const [codigo, setCodigo] = useState("");
+  const [aplicado, setAplicado] = useState<{ codigo: string; tipo: string; valor: number } | null>(null);
+  const [validando, setValidando] = useState(false);
+  const [error, setError] = useState("");
+
+  // Cargar codigo aplicado previamente (si el usuario ya lo puso)
+  useEffect(() => {
+    const guardado = localStorage.getItem(DESC_KEY);
+    if (guardado) {
+      try {
+        setAplicado(JSON.parse(guardado));
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
+  async function aplicar() {
+    if (!codigo.trim()) return;
+    setError("");
+    setValidando(true);
+    try {
+      const r = await api<Validacion>(
+        `/discounts/validar?codigo=${encodeURIComponent(codigo.trim().toUpperCase())}`,
+      );
+      if (r.valido && r.tipo && r.valor !== undefined) {
+        const dato = { codigo: codigo.trim().toUpperCase(), tipo: r.tipo, valor: r.valor };
+        setAplicado(dato);
+        localStorage.setItem(DESC_KEY, JSON.stringify(dato));
+        setCodigo("");
+      } else {
+        setError("Codigo no valido");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Codigo no valido");
+    } finally {
+      setValidando(false);
+    }
+  }
+
+  function quitarDescuento() {
+    setAplicado(null);
+    localStorage.removeItem(DESC_KEY);
+    setError("");
+  }
+
+  // Calcular descuento
+  const montoDescuento = aplicado
+    ? aplicado.tipo === "porcentaje"
+      ? Math.round(total * (aplicado.valor / 100))
+      : Math.min(aplicado.valor, total)
+    : 0;
+  const totalFinal = Math.max(0, total - montoDescuento);
 
   return (
     <aside className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-6">
@@ -60,14 +124,57 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
             ))}
           </div>
 
+          {/* Codigo de descuento */}
+          <div className="border-t border-gray-100 pt-3 mb-3">
+            {aplicado ? (
+              <div className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm">
+                <span className="font-medium text-gray-700">
+                  {aplicado.codigo}
+                  <span className="text-gray-400 ml-1">
+                    ({aplicado.tipo === "porcentaje" ? `${aplicado.valor}%` : `$${aplicado.valor.toLocaleString("es-CL")}`})
+                  </span>
+                </span>
+                <button onClick={quitarDescuento} className="text-red-500 text-xs hover:underline">
+                  Quitar
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  value={codigo}
+                  onChange={(e) => setCodigo(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => e.key === "Enter" && aplicar()}
+                  placeholder="Codigo de descuento"
+                  className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                />
+                <button
+                  onClick={aplicar}
+                  disabled={validando}
+                  className="text-white px-4 py-2 text-sm font-medium btn-pill"
+                  style={{ backgroundColor: colorMarca }}
+                >
+                  {validando ? "..." : "Aplicar"}
+                </button>
+              </div>
+            )}
+            {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
+          </div>
+
+          {/* Totales */}
           <div className="border-t border-gray-100 pt-3 space-y-1 text-sm">
             <div className="flex justify-between text-gray-500">
               <span>Subtotal</span>
               <span>${total.toLocaleString("es-CL")}</span>
             </div>
-            <div className="flex justify-between font-bold text-lg text-gray-900">
+            {montoDescuento > 0 && (
+              <div className="flex justify-between" style={{ color: colorMarca }}>
+                <span>Descuento</span>
+                <span>-${montoDescuento.toLocaleString("es-CL")}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-bold text-lg text-gray-900 pt-1">
               <span>Total</span>
-              <span>${total.toLocaleString("es-CL")}</span>
+              <span>${totalFinal.toLocaleString("es-CL")}</span>
             </div>
           </div>
 
@@ -79,7 +186,7 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
             Continuar al envio
           </Link>
           <p className="text-xs text-gray-400 text-center mt-2">
-            Codigo de descuento y puntos se aplican en el siguiente paso.
+            El total final se confirma en el checkout.
           </p>
         </>
       )}
