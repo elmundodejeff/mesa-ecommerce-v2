@@ -5,6 +5,8 @@ import {
   Patch,
   Body,
   Req,
+  Delete,
+  Param,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -16,6 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UpdateUserDto, AvatarBancoDto } from './dto/update-user.dto';
+import { CreateDireccionDto, UpdateDireccionDto } from './dto/direccion.dto';
 import { STORAGE_PROVIDER } from '../../platform/storage/storage.interface';
 import type { StorageProvider } from '../../platform/storage/storage.interface';
 import { Inject } from '@nestjs/common';
@@ -89,6 +92,36 @@ export class UsersController {
   ) {
     const user = await this.service.actualizarAvatar(req.user.id, dto.url);
     return { avatar: user.avatar };
+  }
+
+
+  // --- Direcciones ---
+  @UseGuards(JwtAuthGuard)
+  @Get('me/direcciones')
+  listarDirecciones(@Req() req: ReqConUsuario) {
+    return this.service.listarDirecciones(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('me/direcciones')
+  crearDireccion(@Req() req: ReqConUsuario, @Body() dto: CreateDireccionDto) {
+    return this.service.crearDireccion(req.user.id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/direcciones/:id')
+  actualizarDireccion(
+    @Req() req: ReqConUsuario,
+    @Param('id') id: string,
+    @Body() dto: UpdateDireccionDto,
+  ) {
+    return this.service.actualizarDireccion(req.user.id, id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('me/direcciones/:id')
+  borrarDireccion(@Req() req: ReqConUsuario, @Param('id') id: string) {
+    return this.service.borrarDireccion(req.user.id, id);
   }
 
 }

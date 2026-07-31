@@ -29,4 +29,42 @@ export class UsersRepository {
       data,
     });
   }
+
+  // --- Direcciones ---
+  listarDirecciones(userId: string) {
+    return this.prisma.direccion.findMany({
+      where: { userId },
+      orderBy: { esPrincipal: "desc" },
+    });
+  }
+
+  buscarDireccion(id: string) {
+    return this.prisma.direccion.findUnique({ where: { id } });
+  }
+
+  crearDireccion(userId: string, data: {
+    alias: string; calle: string; ciudad: string; region: string; esPrincipal?: boolean;
+  }) {
+    return this.prisma.direccion.create({
+      data: { ...data, userId },
+    });
+  }
+
+  actualizarDireccion(id: string, data: {
+    alias?: string; calle?: string; ciudad?: string; region?: string; esPrincipal?: boolean;
+  }) {
+    return this.prisma.direccion.update({ where: { id }, data });
+  }
+
+  borrarDireccion(id: string) {
+    return this.prisma.direccion.delete({ where: { id } });
+  }
+
+  // Desmarca todas las principales del usuario (para dejar solo una)
+  desmarcarPrincipales(userId: string) {
+    return this.prisma.direccion.updateMany({
+      where: { userId, esPrincipal: true },
+      data: { esPrincipal: false },
+    });
+  }
 }

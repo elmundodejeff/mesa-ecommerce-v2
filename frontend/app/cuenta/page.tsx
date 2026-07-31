@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, apiUpload } from "@/lib/api";
+import SeccionDirecciones from "@/components/SeccionDirecciones";
 import {
   obtenerToken,
   obtenerUsuario,
@@ -196,6 +197,8 @@ export default function CuentaPage() {
             {guardandoDatos ? "Guardando..." : "Guardar datos"}
           </button>
         </section>
+
+        <SeccionDirecciones />
       </div>
     </div>
   );

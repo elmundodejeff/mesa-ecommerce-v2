@@ -2,6 +2,8 @@ import {
   Injectable,
   ConflictException,
   BadRequestException,
+  NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersRepository } from './users.repository';
@@ -68,6 +70,40 @@ export class UsersService {
       telefono: data.telefono,
       rut: rutNormalizado,
     });
+  }
+
+
+  // --- Direcciones ---
+  listarDirecciones(userId: string) {
+    return this.repo.listarDirecciones(userId);
+  }
+
+  async crearDireccion(userId: string, data: {
+    alias: string; calle: string; ciudad: string; region: string; esPrincipal?: boolean;
+  }) {
+    if (data.esPrincipal) {
+      await this.repo.desmarcarPrincipales(userId);
+    }
+    return this.repo.crearDireccion(userId, data);
+  }
+
+  async actualizarDireccion(userId: string, id: string, data: {
+    alias?: string; calle?: string; ciudad?: string; region?: string; esPrincipal?: boolean;
+  }) {
+    const dir = await this.repo.buscarDireccion(id);
+    if (!dir) throw new NotFoundException("Direccion no encontrada");
+    if (dir.userId !== userId) throw new ForbiddenException("No autorizado");
+    if (data.esPrincipal) {
+      await this.repo.desmarcarPrincipales(userId);
+    }
+    return this.repo.actualizarDireccion(id, data);
+  }
+
+  async borrarDireccion(userId: string, id: string) {
+    const dir = await this.repo.buscarDireccion(id);
+    if (!dir) throw new NotFoundException("Direccion no encontrada");
+    if (dir.userId !== userId) throw new ForbiddenException("No autorizado");
+    return this.repo.borrarDireccion(id);
   }
 
 }
