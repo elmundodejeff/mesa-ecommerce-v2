@@ -63,19 +63,26 @@ export default function Dashboard() {
       .catch(() => {});
   }, [dias]);
   const fmt = (n: number) => `$${n.toLocaleString("es-CL")}`;
-  const VINO = "#4B1528";
-  const ROSA = "#D4537E";
+  const VINO = "var(--color-header)";
+  const ROSA = "var(--color-marca)";
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+    <>
+      <div className="admin-header">
+        <div>
+          <h1 className="admin-title">Dashboard</h1>
+          <p className="admin-subtitle">Resumen de ventas y desempeño</p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card titulo="Ventas totales" valor={resumen ? fmt(resumen.ventasTotales) : "..."} />
         <Card titulo="Pedidos" valor={resumen ? String(resumen.pedidos) : "..."} />
         <Card titulo="Usuarios" valor={resumen ? String(resumen.usuarios) : "..."} />
         <Card titulo="Ticket promedio" valor={resumen ? fmt(resumen.ticketPromedio) : "..."} />
       </div>
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h2 className="font-semibold text-gray-800 mb-4">Ventas ultimos 6 meses</h2>
+
+      <div className="admin-card">
+        <h2 className="admin-card-title">Ventas últimos 6 meses</h2>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={porMes}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -86,10 +93,11 @@ export default function Dashboard() {
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h2 className="font-semibold text-gray-800 mb-1">Proyeccion de ventas</h2>
+
+      <div className="admin-card">
+        <h2 className="admin-card-title mb-1">Proyección de ventas</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Historico real (barra) y tendencia proyectada a 6 meses (linea punteada)
+          Histórico real (línea) y tendencia proyectada a 6 meses (línea punteada)
         </p>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={proyeccion}>
@@ -98,42 +106,26 @@ export default function Dashboard() {
             <YAxis fontSize={12} tickFormatter={(v) => `$${v / 1000}k`} />
             <Tooltip formatter={(v: number) => fmt(v)} />
             <Legend />
-            <Line
-              name="Real"
-              type="monotone"
-              dataKey="real"
-              stroke={VINO}
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              connectNulls
-            />
-            <Line
-              name="Proyeccion"
-              type="monotone"
-              dataKey="proyeccion"
-              stroke={ROSA}
-              strokeWidth={2}
-              strokeDasharray="6 4"
-              dot={{ r: 3 }}
-              connectNulls
-            />
+            <Line name="Real" type="monotone" dataKey="real" stroke={VINO} strokeWidth={2} dot={{ r: 4 }} connectNulls />
+            <Line name="Proyección" type="monotone" dataKey="proyeccion" stroke={ROSA} strokeWidth={2} strokeDasharray="6 4" dot={{ r: 3 }} connectNulls />
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+
+      <div className="admin-card">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-gray-800">Ventas por dia</h2>
-          <div className="flex gap-2 text-sm">
+          <h2 className="admin-card-title mb-0">Ventas por día</h2>
+          <div className="flex gap-2">
             {[7, 15, 30].map((d) => (
               <button
                 key={d}
                 onClick={() => setDias(d)}
-                className={`px-3 py-1 rounded-full ${
-                  dias === d ? "text-white" : "border text-gray-600"
+                className={`px-3 py-1 rounded-full text-sm transition ${
+                  dias === d ? "text-white" : "border border-gray-300 text-gray-600"
                 }`}
-                style={dias === d ? { backgroundColor: VINO } : {}}
+                style={dias === d ? { backgroundColor: "var(--color-marca)" } : {}}
               >
-                {d} dias
+                {d} días
               </button>
             ))}
           </div>
@@ -148,9 +140,10 @@ export default function Dashboard() {
           </LineChart>
         </ResponsiveContainer>
       </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <h2 className="font-semibold text-gray-800 mb-4">Mas vendidos (unidades)</h2>
+        <div className="admin-card">
+          <h2 className="admin-card-title">Más vendidos (unidades)</h2>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={masVendidos} layout="vertical" margin={{ left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
@@ -161,8 +154,8 @@ export default function Dashboard() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <h2 className="font-semibold text-gray-800 mb-4">Menos vendidos (unidades)</h2>
+        <div className="admin-card">
+          <h2 className="admin-card-title">Menos vendidos (unidades)</h2>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={menosVendidos} layout="vertical" margin={{ left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
@@ -174,30 +167,31 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
       </div>
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h2 className="font-semibold text-gray-800 mb-4">Top compradores</h2>
+
+      <div className="admin-card">
+        <h2 className="admin-card-title">Top compradores</h2>
         {compradores.length === 0 ? (
           <p className="text-sm text-gray-400">Sin datos de compradores registrados.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="admin-tabla">
               <thead>
-                <tr className="text-left text-gray-500 border-b">
-                  <th className="py-2 pr-4">#</th>
-                  <th className="py-2 pr-4">Cliente</th>
-                  <th className="py-2 pr-4">Email</th>
-                  <th className="py-2 pr-4 text-right">Pedidos</th>
-                  <th className="py-2 text-right">Total gastado</th>
+                <tr>
+                  <th>#</th>
+                  <th>Cliente</th>
+                  <th>Email</th>
+                  <th className="text-right">Pedidos</th>
+                  <th className="text-right">Total gastado</th>
                 </tr>
               </thead>
               <tbody>
                 {compradores.map((c, i) => (
-                  <tr key={c.userId} className="border-b last:border-0">
-                    <td className="py-2 pr-4 text-gray-400">{i + 1}</td>
-                    <td className="py-2 pr-4 font-medium text-gray-800">{c.nombre}</td>
-                    <td className="py-2 pr-4 text-gray-500">{c.email}</td>
-                    <td className="py-2 pr-4 text-right text-gray-600">{c.pedidos}</td>
-                    <td className="py-2 text-right font-semibold" style={{ color: VINO }}>
+                  <tr key={c.userId}>
+                    <td className="text-gray-400">{i + 1}</td>
+                    <td className="font-medium text-gray-800">{c.nombre}</td>
+                    <td className="text-gray-500">{c.email}</td>
+                    <td className="text-right">{c.pedidos}</td>
+                    <td className="text-right font-semibold" style={{ color: "var(--color-marca)" }}>
                       {fmt(c.totalGastado)}
                     </td>
                   </tr>
@@ -207,12 +201,12 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }
 function Card({ titulo, valor }: { titulo: string; valor: string }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+    <div className="admin-card">
       <p className="text-sm text-gray-500">{titulo}</p>
       <p className="text-2xl font-bold text-gray-900 mt-1">{valor}</p>
     </div>
