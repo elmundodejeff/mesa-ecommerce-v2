@@ -16,7 +16,7 @@ const LINKS = [
   { href: "/admin/secciones", label: "Secciones" },
   { href: "/admin/descuentos", label: "Descuentos" },
   { href: "/admin/ordenes", label: "Ordenes" },
-  { href: "/admin/contacto", label: "Mensajes" },
+  { href: "/admin/contacto", label: "Comunicaciones" },
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/banners", label: "Banners" },
   { href: "/admin/menu", label: "Menu" },

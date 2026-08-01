@@ -217,3 +217,11 @@ model MovimientoPuntos {
   vence    DateTime?
   ordenId  Int?
 }
+
+model Suscriptor {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  nombre    String?
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
