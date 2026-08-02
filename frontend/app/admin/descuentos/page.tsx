@@ -18,6 +18,7 @@ interface Descuento {
   activo: boolean;
   usos: number;
   maxUsos: number | null;
+  maxUsosPorUsuario: number | null;
   userId: string | null;
 }
 
@@ -29,6 +30,7 @@ export default function AdminDescuentos() {
   const [valor, setValor] = useState("");
   const [vigencia, setVigencia] = useState("");
   const [maxUsos, setMaxUsos] = useState("");
+  const [maxPorUsuario, setMaxPorUsuario] = useState("");
   const [userId, setUserId] = useState("");
   const [error, setError] = useState("");
 
@@ -62,6 +64,7 @@ export default function AdminDescuentos() {
           valor: Number(valor),
           vigencia,
           maxUsos: maxUsos ? Number(maxUsos) : undefined,
+          maxUsosPorUsuario: maxPorUsuario ? Number(maxPorUsuario) : undefined,
           userId: userId || undefined,
         },
       });
@@ -69,6 +72,7 @@ export default function AdminDescuentos() {
       setValor("");
       setVigencia("");
       setMaxUsos("");
+      setMaxPorUsuario("");
       setUserId("");
       await cargar();
     } catch (e) {
@@ -136,7 +140,7 @@ export default function AdminDescuentos() {
             <input type="date" value={vigencia} onChange={(e) => setVigencia(e.target.value)} required className="admin-input" />
           </div>
           <div>
-            <label className="admin-label">Máximo de usos</label>
+            <label className="admin-label">Máximo de usos (global)</label>
             <input
               type="number"
               min="1"
@@ -147,6 +151,17 @@ export default function AdminDescuentos() {
             />
           </div>
           <div>
+            <label className="admin-label">Máximo por usuario</label>
+            <input
+              type="number"
+              min="1"
+              placeholder="Sin límite (ej: 1 = una vez c/u)"
+              value={maxPorUsuario}
+              onChange={(e) => setMaxPorUsuario(e.target.value)}
+              className="admin-input"
+            />
+          </div>
+          <div className="md:col-span-2">
             <label className="admin-label">Asignar a</label>
             <select value={userId} onChange={(e) => setUserId(e.target.value)} className="admin-input">
               <option value="">Todos los usuarios</option>
@@ -158,6 +173,9 @@ export default function AdminDescuentos() {
             </select>
           </div>
         </div>
+        <p className="text-xs text-gray-400 mt-3">
+          Tip: para un cupón de bienvenida de un solo uso por persona, pon &quot;Máximo por usuario&quot; en 1 y déjalo asignado a &quot;Todos&quot;.
+        </p>
         <button className="btn-primario mt-4">Crear código</button>
       </form>
 
@@ -173,6 +191,7 @@ export default function AdminDescuentos() {
                 <th>Valor</th>
                 <th>Vigencia</th>
                 <th>Usos</th>
+                <th>Por usuario</th>
                 <th>Asignado a</th>
                 <th></th>
               </tr>
@@ -192,6 +211,7 @@ export default function AdminDescuentos() {
                     {d.usos}
                     {d.maxUsos ? `/${d.maxUsos}` : ""}
                   </td>
+                  <td>{d.maxUsosPorUsuario ? `${d.maxUsosPorUsuario}x` : "—"}</td>
                   <td>
                     {d.userId ? (
                       <span className="admin-badge">{nombreUsuario(d.userId)}</span>
@@ -205,7 +225,7 @@ export default function AdminDescuentos() {
                 </tr>
               ))}
               {items.length === 0 && (
-                <tr><td colSpan={7} className="pl-6 text-gray-400">Sin códigos aún.</td></tr>
+                <tr><td colSpan={8} className="pl-6 text-gray-400">Sin códigos aún.</td></tr>
               )}
             </tbody>
           </table>

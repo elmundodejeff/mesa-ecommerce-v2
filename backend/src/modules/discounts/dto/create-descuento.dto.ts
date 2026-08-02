@@ -35,4 +35,8 @@ export class CreateDescuentoDto {
   @IsOptional()
   @IsString()
   userId?: string;
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  maxUsosPorUsuario?: number;
 }

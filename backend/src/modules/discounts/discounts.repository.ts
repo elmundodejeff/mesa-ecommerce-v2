@@ -19,6 +19,11 @@ export class DiscountsRepository {
   findByCodigo(codigo: string) {
     return this.prisma.codigoDescuento.findUnique({ where: { codigo } });
   }
+  contarUsosDeUsuario(codigoId: number, userId: string) {
+    return this.prisma.usoCodigoDescuento.count({
+      where: { codigoId, userId },
+    });
+  }
   findPersonalesDeUsuario(userId: string) {
     return this.prisma.codigoDescuento.findMany({
       where: {

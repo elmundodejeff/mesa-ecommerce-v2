@@ -127,12 +127,17 @@ export class OrdersRepository {
         }
       }
 
-      // 3c. Incrementar usos del codigo ganador
+      // 3c. Incrementar usos del codigo ganador y registrar uso por usuario
       if (descuentoCodigoId !== null) {
         await tx.codigoDescuento.update({
           where: { id: descuentoCodigoId },
           data: { usos: { increment: 1 } },
         });
+        if (input.userId) {
+          await tx.usoCodigoDescuento.create({
+            data: { codigoId: descuentoCodigoId, userId: input.userId },
+          });
+        }
       }
 
       // total tras descuento

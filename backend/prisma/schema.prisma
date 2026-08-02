@@ -166,6 +166,18 @@ model CodigoDescuento {
   usos      Int      @default(0)
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
+  maxUsosPorUsuario Int?
+  usosRegistrados   UsoCodigoDescuento[]
+}
+
+model UsoCodigoDescuento {
+  id       Int             @id @default(autoincrement())
+  codigo   CodigoDescuento @relation(fields: [codigoId], references: [id], onDelete: Cascade)
+  codigoId Int
+  userId   String
+  fecha    DateTime        @default(now())
+
+  @@index([codigoId, userId])
 }
 
 model Entrada {

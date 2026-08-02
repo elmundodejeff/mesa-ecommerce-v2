@@ -82,6 +82,11 @@ export class DiscountsService {
     let mejor: { codigoId: number; codigo: string; monto: number } | null = null;
     for (const d of personales) {
       if (d.maxUsos !== null && d.usos >= d.maxUsos) continue;
+      // Respetar limite por usuario tambien en el automatico
+      if (d.maxUsosPorUsuario !== null) {
+        const usados = await this.repo.contarUsosDeUsuario(d.id, userId);
+        if (usados >= d.maxUsosPorUsuario) continue;
+      }
       let monto =
         d.tipo === "porcentaje"
           ? Math.round((subtotal * d.valor) / 100)
@@ -115,6 +120,16 @@ export class DiscountsService {
     }
     if (d.userId && d.userId !== userId) {
       return { valido: false, motivo: 'Codigo no pertenece a este usuario' };
+    }
+    // Limite por usuario (requiere estar logueado)
+    if (d.maxUsosPorUsuario !== null) {
+      if (!userId) {
+        return { valido: false, motivo: 'Debes iniciar sesion para usar este codigo' };
+      }
+      const usados = await this.repo.contarUsosDeUsuario(d.id, userId);
+      if (usados >= d.maxUsosPorUsuario) {
+        return { valido: false, motivo: 'Ya usaste este codigo el maximo de veces permitido' };
+      }
     }
 
     return {
