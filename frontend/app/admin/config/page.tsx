@@ -5,6 +5,7 @@ import { api, apiUpload } from "@/lib/api";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 import EditorSobreNosotros from "@/components/EditorSobreNosotros";
 import BancoAvatares from "@/components/BancoAvatares";
+import EditorBloquesHome from "@/components/EditorBloquesHome";
 import type { SobreNosotrosData } from "@/components/SobreNosotrosContenido";
 
 interface ConfigData {
@@ -22,6 +23,7 @@ interface ConfigData {
   contactoDireccion: string | null;
   contactoHorario: string | null;
   sobreNosotros?: SobreNosotrosData;
+  bloquesHome?: Record<string, unknown>;
 }
 
 const FUENTES = ["Poppins", "Roboto", "Inter", "Montserrat", "Lato"];
@@ -222,6 +224,10 @@ export default function AdminConfig() {
 
       <Seccion titulo="Página &quot;Sobre nosotros&quot;" subtitulo="Tiene su propio botón de guardar">
         <EditorSobreNosotros inicial={config.sobreNosotros || {}} />
+      </Seccion>
+
+      <Seccion titulo="Bloques de la home" subtitulo="Franja de confianza, categorías, editorial y descuento">
+        <EditorBloquesHome inicial={config.bloquesHome || {}} />
       </Seccion>
 
       <Seccion titulo="Banco de avatares" subtitulo="Imágenes disponibles para los usuarios">

@@ -115,6 +115,7 @@ model Config {
   porcentajePuntosGlobal Int @default(5)
   diasVencimientoPuntos  Int @default(365)
   sobreNosotros Json?
+  bloquesHome   Json?
 }
 
 model ImagenProducto {

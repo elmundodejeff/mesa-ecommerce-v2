@@ -21,4 +21,5 @@ export class UpdateConfigDto {
   @IsOptional() @IsInt() porcentajePuntosGlobal?: number;
   @IsOptional() @IsInt() diasVencimientoPuntos?: number;
   @IsOptional() @IsObject() sobreNosotros?: Record<string, unknown>;
+  @IsOptional() bloquesHome?: unknown;
 }

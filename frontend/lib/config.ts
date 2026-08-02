@@ -13,6 +13,7 @@ export interface Config {
   contactoDireccion: string | null;
   contactoHorario: string | null;
   sobreNosotros?: unknown;
+  bloquesHome?: unknown;
 }
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
