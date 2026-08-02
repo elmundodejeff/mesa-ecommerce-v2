@@ -240,7 +240,7 @@ export default function CheckoutCliente() {
               {orden.avisoPuntos && <p>Puntos: {orden.avisoPuntos}</p>}
             </div>
           )}
-          <Link href="/" className="inline-block mt-6 text-white px-6 py-2.5 btn-pill" style={{ backgroundColor: "var(--color-marca)" }}>
+          <Link href="/tienda" className="inline-block mt-6 text-white px-6 py-2.5 btn-pill" style={{ backgroundColor: "var(--color-marca)" }}>
             Volver a la tienda
           </Link>
         </div>

@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { api, apiUpload } from "@/lib/api";
 import SeccionDirecciones from "@/components/SeccionDirecciones";
 import SeccionHistorial from "@/components/SeccionHistorial";
 import SeccionPeligro from "@/components/SeccionPeligro";
+import ShellPublico from "@/components/ShellPublico";
 import {
   obtenerToken,
   obtenerUsuario,
@@ -135,12 +135,9 @@ export default function CuentaPage() {
   if (!me) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Mi perfil</h1>
-          <Link href="/" className="text-sm text-gray-500 hover:underline">Volver</Link>
-        </div>
+    <ShellPublico>
+      <div className="max-w-2xl mx-auto space-y-6 py-10 px-4">
+        <h1 className="text-2xl font-bold text-gray-900">Mi perfil</h1>
 
         {/* AVATAR */}
         <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -206,6 +203,6 @@ export default function CuentaPage() {
 
         <SeccionPeligro />
       </div>
-    </div>
+    </ShellPublico>
   );
 }

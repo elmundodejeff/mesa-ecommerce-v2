@@ -76,7 +76,7 @@ export default function AdminConfig() {
         auth: true,
         body: {
           nombreSitio: config.nombreSitio,
-          logo: config.logo || undefined,
+          logo: config.logo ?? "",
           logoUrl: config.logoUrl || undefined,
           fuente: config.fuente,
           colorMarca: config.colorMarca,
