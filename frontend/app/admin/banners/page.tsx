@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api, apiUpload } from "@/lib/api";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 interface Banner {
   id: number;
@@ -19,6 +21,7 @@ export default function AdminBanners() {
   const [subtitulo, setSubtitulo] = useState("");
   const [enlace, setEnlace] = useState("");
   const [orden, setOrden] = useState("");
+  const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState("");
 
   async function cargar() {
@@ -33,9 +36,28 @@ export default function AdminBanners() {
     cargar();
   }, []);
 
+  async function subirImagen(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setError("");
+    setSubiendo(true);
+    try {
+      const fd = new FormData();
+      fd.append("imagen", f);
+      const res = await apiUpload<{ url: string }>("/content/upload", fd);
+      setImagen(res.url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al subir");
+    } finally {
+      setSubiendo(false);
+      e.target.value = "";
+    }
+  }
+
   async function crear(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (!imagen) { setError("Sube o ingresa una imagen"); return; }
     try {
       await api("/content/banners", {
         method: "POST",
@@ -69,6 +91,10 @@ export default function AdminBanners() {
     }
   }
 
+  const previewImg = imagen
+    ? (imagen.startsWith("http") ? imagen : `${API_BASE}${imagen}`)
+    : "";
+
   return (
     <>
       <div className="admin-header">
@@ -80,12 +106,26 @@ export default function AdminBanners() {
 
       <form onSubmit={crear} className="admin-card space-y-3">
         <div>
-          <label className="admin-label">URL de la imagen</label>
+          <label className="admin-label">Imagen</label>
+          <div className="flex items-center gap-4 mb-2">
+            {previewImg ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={previewImg} alt="" className="h-20 w-36 object-cover rounded border" />
+            ) : (
+              <div className="h-20 w-36 rounded border border-dashed flex items-center justify-center text-gray-300 text-xs">Sin imagen</div>
+            )}
+            <label className="btn-secundario cursor-pointer">
+              {subiendo ? "Subiendo..." : "Subir archivo"}
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={subirImagen} disabled={subiendo} className="hidden" />
+            </label>
+            {imagen && (
+              <button type="button" onClick={() => setImagen("")} className="link-peligro">Quitar</button>
+            )}
+          </div>
           <input
-            placeholder="https://..."
+            placeholder="O pega una URL: https://..."
             value={imagen}
             onChange={(e) => setImagen(e.target.value)}
-            required
             className="admin-input"
           />
         </div>
@@ -113,28 +153,29 @@ export default function AdminBanners() {
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {items.map((b) => (
-          <div key={b.id} className="admin-card p-0 overflow-hidden">
-            <div className="h-32 bg-gray-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={b.imagen}
-                alt={b.titulo || "banner"}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
-            </div>
-            <div className="p-4 flex justify-between items-center">
-              <div>
-                <p className="font-medium text-gray-800">{b.titulo || "(sin título)"}</p>
-                <p className="text-xs text-gray-400">Orden: {b.orden}</p>
+        {items.map((b) => {
+          const img = b.imagen.startsWith("http") ? b.imagen : `${API_BASE}${b.imagen}`;
+          return (
+            <div key={b.id} className="admin-card p-0 overflow-hidden">
+              <div className="h-32 bg-gray-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img}
+                  alt={b.titulo || "banner"}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
               </div>
-              <button onClick={() => eliminar(b.id)} className="link-peligro">Eliminar</button>
+              <div className="p-4 flex justify-between items-center">
+                <div>
+                  <p className="font-medium text-gray-800">{b.titulo || "(sin título)"}</p>
+                  <p className="text-xs text-gray-400">Orden: {b.orden}</p>
+                </div>
+                <button onClick={() => eliminar(b.id)} className="link-peligro">Eliminar</button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {items.length === 0 && (
           <p className="text-gray-400 text-sm">Sin banners aún.</p>
         )}
