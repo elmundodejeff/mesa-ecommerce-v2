@@ -13,7 +13,7 @@ const LINKS = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/productos-lista", label: "Productos" },
   { href: "/admin/categorias", label: "Categorias" },
-  { href: "/admin/secciones", label: "Secciones" },
+  { href: "/admin/home", label: "Home" },
   { href: "/admin/descuentos", label: "Descuentos" },
   { href: "/admin/ordenes", label: "Ordenes" },
   { href: "/admin/contacto", label: "Comunicaciones" },
