@@ -49,6 +49,9 @@ model Orden {
   puntosUsados    Int @default(0)
   descuentoMonto  Int @default(0)
   descuentoCodigo String?
+  fechaEnvio       DateTime?
+  fechaEntrega     DateTime?
+  fechaCancelacion DateTime?
 }
 
 model OrdenItem {

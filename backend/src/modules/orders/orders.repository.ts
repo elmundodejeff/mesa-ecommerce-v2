@@ -234,9 +234,15 @@ export class OrdersRepository {
   }
 
   updateEstado(id: number, estado: string) {
+    const data: any = { estado };
+    const ahora = new Date();
+    // Registrar la fecha del hito segun el nuevo estado
+    if (estado === "enviado") data.fechaEnvio = ahora;
+    if (estado === "entregado") data.fechaEntrega = ahora;
+    if (estado === "cancelado") data.fechaCancelacion = ahora;
     return this.prisma.orden.update({
       where: { id },
-      data: { estado },
+      data,
     });
   }
 
