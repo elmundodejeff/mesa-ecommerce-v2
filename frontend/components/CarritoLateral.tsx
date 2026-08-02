@@ -17,6 +17,12 @@ interface ResumenPuntos {
   saldo: number;
 }
 
+interface DescuentoPersonal {
+  codigoId: number;
+  codigo: string;
+  monto: number;
+}
+
 const DESC_KEY = "mesa_descuento";
 const PUNTOS_KEY = "mesa_puntos";
 
@@ -30,6 +36,7 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
   const [logueado, setLogueado] = useState(false);
   const [saldoPuntos, setSaldoPuntos] = useState(0);
   const [puntosAUsar, setPuntosAUsar] = useState(0);
+  const [personal, setPersonal] = useState<DescuentoPersonal | null>(null);
 
   useEffect(() => {
     const guardado = localStorage.getItem(DESC_KEY);
@@ -52,6 +59,17 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
         .catch(() => setSaldoPuntos(0));
     }
   }, []);
+
+  // Consultar el mejor descuento personal automatico cuando cambia el total
+  useEffect(() => {
+    if (!logueado || total <= 0) {
+      setPersonal(null);
+      return;
+    }
+    api<DescuentoPersonal | null>(`/discounts/mi-descuento?subtotal=${total}`, { auth: true })
+      .then((r) => setPersonal(r))
+      .catch(() => setPersonal(null));
+  }, [logueado, total]);
 
   async function aplicar() {
     if (!codigo.trim()) return;
@@ -82,15 +100,25 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
     setError("");
   }
 
-  const montoDescuento = aplicado
+  // Monto del codigo manual (si hay)
+  const montoManual = aplicado
     ? aplicado.tipo === "porcentaje"
       ? Math.round(total * (aplicado.valor / 100))
       : Math.min(aplicado.valor, total)
     : 0;
 
+  // Monto del personal automatico (si hay)
+  const montoPersonal = personal ? Math.min(personal.monto, total) : 0;
+
+  // Gana el de mayor ahorro (misma logica que el backend)
+  const usaPersonal = montoPersonal > montoManual;
+  const montoDescuento = Math.max(montoManual, montoPersonal);
+  const etiquetaDescuento = usaPersonal
+    ? personal?.codigo ?? "Descuento"
+    : aplicado?.codigo ?? "Descuento";
+
   const totalTrasDescuento = Math.max(0, total - montoDescuento);
 
-  // Tope de puntos: no mas que el saldo, ni mas que el total tras descuento
   const maxPuntos = Math.min(saldoPuntos, totalTrasDescuento);
   const puntosEfectivos = Math.min(Math.max(0, puntosAUsar), maxPuntos);
   const totalFinal = Math.max(0, totalTrasDescuento - puntosEfectivos);
@@ -155,7 +183,19 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
             ))}
           </div>
 
-          {/* Codigo de descuento */}
+          {/* Descuento personal automatico */}
+          {personal && montoPersonal > 0 && (
+            <div className="border-t border-gray-100 pt-3 mb-3">
+              <div className="flex items-center justify-between rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: `${colorMarca}12` }}>
+                <span className="font-medium" style={{ color: colorMarca }}>
+                  Descuento aplicado automáticamente
+                  <span className="text-xs ml-1 opacity-80">({personal.codigo})</span>
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Codigo de descuento manual */}
           <div className="border-t border-gray-100 pt-3 mb-3">
             {aplicado ? (
               <div className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm">
@@ -164,6 +204,9 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
                   <span className="text-gray-400 ml-1">
                     ({aplicado.tipo === "porcentaje" ? `${aplicado.valor}%` : `$${aplicado.valor.toLocaleString("es-CL")}`})
                   </span>
+                  {usaPersonal && (
+                    <span className="text-xs text-amber-600 ml-2">(se usa el automático, mayor ahorro)</span>
+                  )}
                 </span>
                 <button onClick={quitarDescuento} className="text-red-500 text-xs hover:underline">
                   Quitar
@@ -175,7 +218,7 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
                   value={codigo}
                   onChange={(e) => setCodigo(e.target.value.toUpperCase())}
                   onKeyDown={(e) => e.key === "Enter" && aplicar()}
-                  placeholder="Codigo de descuento"
+                  placeholder="¿Tienes otro código?"
                   className="flex-1 border rounded-lg px-3 py-2 text-sm"
                 />
                 <button
@@ -227,7 +270,7 @@ export default function CarritoLateral({ colorMarca }: { colorMarca: string }) {
             </div>
             {montoDescuento > 0 && (
               <div className="flex justify-between" style={{ color: colorMarca }}>
-                <span>Descuento</span>
+                <span>Descuento ({etiquetaDescuento})</span>
                 <span>-${montoDescuento.toLocaleString("es-CL")}</span>
               </div>
             )}

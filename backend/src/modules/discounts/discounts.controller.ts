@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   Query,
+  Req,
   ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
@@ -23,6 +24,19 @@ export class DiscountsController {
   @Get('validar')
   validar(@Query('codigo') codigo: string) {
     return this.service.validarPublico(codigo);
+  }
+
+  // Logueado: mejor descuento personal automatico (para preview del carrito)
+  @UseGuards(JwtAuthGuard)
+  @Get('mi-descuento')
+  miDescuento(
+    @Req() req: { user: { id: string } },
+    @Query('subtotal') subtotal: string,
+  ) {
+    return this.service.mejorDescuentoPersonal(
+      req.user.id,
+      Number(subtotal) || 0,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

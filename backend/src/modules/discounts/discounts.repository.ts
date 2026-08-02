@@ -19,6 +19,15 @@ export class DiscountsRepository {
   findByCodigo(codigo: string) {
     return this.prisma.codigoDescuento.findUnique({ where: { codigo } });
   }
+  findPersonalesDeUsuario(userId: string) {
+    return this.prisma.codigoDescuento.findMany({
+      where: {
+        userId,
+        activo: true,
+        vigencia: { gte: new Date() },
+      },
+    });
+  }
 
   create(data: Prisma.CodigoDescuentoCreateInput) {
     return this.prisma.codigoDescuento.create({ data });

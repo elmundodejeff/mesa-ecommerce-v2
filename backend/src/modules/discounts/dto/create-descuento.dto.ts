@@ -32,4 +32,7 @@ export class CreateDescuentoDto {
   @IsInt()
   @Min(1)
   maxUsos?: number;
+  @IsOptional()
+  @IsString()
+  userId?: string;
 }

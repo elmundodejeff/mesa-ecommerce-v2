@@ -10,6 +10,13 @@ export class UsersRepository {
   findById(id: string) {
     return this.prisma.user.findUnique({ where: { id } });
   }
+  listarTodos() {
+    return this.prisma.user.findMany({
+      where: { activo: true },
+      select: { id: true, nombre: true, email: true, rol: true },
+      orderBy: { nombre: "asc" },
+    });
+  }
   create(data: Prisma.UserCreateInput) {
     return this.prisma.user.create({ data });
   }

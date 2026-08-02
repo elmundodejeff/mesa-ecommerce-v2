@@ -35,6 +35,13 @@ export class UsersController {
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
+  // Admin: listar usuarios (para asignar descuentos)
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  listarTodos() {
+    return this.service.listarTodos();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@Req() req: ReqConUsuario) {

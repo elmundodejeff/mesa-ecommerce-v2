@@ -20,6 +20,9 @@ export class UsersService {
   findById(id: string) {
     return this.repo.findById(id);
   }
+  listarTodos() {
+    return this.repo.listarTodos();
+  }
 
   async create(params: {
     email: string;

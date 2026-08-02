@@ -33,10 +33,12 @@ export class DiscountsService {
   }
 
   async create(dto: CreateDescuentoDto) {
+    const { userId, ...resto } = dto;
     try {
       return await this.repo.create({
-        ...dto,
+        ...resto,
         vigencia: new Date(dto.vigencia),
+        ...(userId ? { user: { connect: { id: userId } } } : {}),
       });
     } catch (e: any) {
       if (e.code === 'P2002') {
@@ -48,9 +50,13 @@ export class DiscountsService {
 
   async update(id: number, dto: UpdateDescuentoDto) {
     await this.findOne(id);
-    const data: any = { ...dto };
+    const { userId, ...resto } = dto;
+    const data: any = { ...resto };
     if (dto.vigencia) {
       data.vigencia = new Date(dto.vigencia);
+    }
+    if (userId !== undefined) {
+      data.user = userId ? { connect: { id: userId } } : { disconnect: true };
     }
     try {
       return await this.repo.update(id, data);
@@ -65,6 +71,27 @@ export class DiscountsService {
   async remove(id: number) {
     await this.findOne(id);
     return this.repo.remove(id);
+  }
+
+  // Calcula el mejor descuento personal (asignado al usuario) segun ahorro
+  async mejorDescuentoPersonal(
+    userId: string,
+    subtotal: number,
+  ): Promise<{ codigoId: number; codigo: string; monto: number } | null> {
+    const personales = await this.repo.findPersonalesDeUsuario(userId);
+    let mejor: { codigoId: number; codigo: string; monto: number } | null = null;
+    for (const d of personales) {
+      if (d.maxUsos !== null && d.usos >= d.maxUsos) continue;
+      let monto =
+        d.tipo === "porcentaje"
+          ? Math.round((subtotal * d.valor) / 100)
+          : d.valor;
+      if (monto > subtotal) monto = subtotal;
+      if (!mejor || monto > mejor.monto) {
+        mejor = { codigoId: d.id, codigo: d.codigo, monto };
+      }
+    }
+    return mejor;
   }
 
   // Validacion reutilizable: la usara el checkout

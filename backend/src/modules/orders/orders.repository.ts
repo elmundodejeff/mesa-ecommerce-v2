@@ -89,27 +89,50 @@ export class OrdersRepository {
         });
       }
 
-      // 3. Descuento por codigo
+      // 3. Descuento: compara codigo manual vs mejor descuento personal (automatico)
       let descuentoMonto = 0;
       let descuentoCodigo: string | null = null;
+      let descuentoCodigoId: number | null = null;
       let avisoDescuento: string | null = null;
 
+      // 3a. Candidato: codigo manual escrito por el usuario
       if (input.codigo) {
         const v = await this.discounts.validar(input.codigo, input.userId);
         if (v.valido) {
-          descuentoMonto =
+          let monto =
             v.tipo === 'porcentaje'
               ? Math.round((subtotal * (v.valor ?? 0)) / 100)
               : (v.valor ?? 0);
-          if (descuentoMonto > subtotal) descuentoMonto = subtotal;
+          if (monto > subtotal) monto = subtotal;
+          descuentoMonto = monto;
           descuentoCodigo = input.codigo;
-          await tx.codigoDescuento.update({
-            where: { id: v.codigoId },
-            data: { usos: { increment: 1 } },
-          });
+          descuentoCodigoId = v.codigoId ?? null;
         } else {
           avisoDescuento = v.motivo ?? 'Codigo no valido';
         }
+      }
+
+      // 3b. Candidato: mejor descuento personal automatico (solo logueados)
+      if (input.userId) {
+        const personal = await this.discounts.mejorDescuentoPersonal(
+          input.userId,
+          subtotal,
+        );
+        // Gana el de mayor ahorro
+        if (personal && personal.monto > descuentoMonto) {
+          descuentoMonto = personal.monto;
+          descuentoCodigo = personal.codigo;
+          descuentoCodigoId = personal.codigoId;
+          avisoDescuento = null;
+        }
+      }
+
+      // 3c. Incrementar usos del codigo ganador
+      if (descuentoCodigoId !== null) {
+        await tx.codigoDescuento.update({
+          where: { id: descuentoCodigoId },
+          data: { usos: { increment: 1 } },
+        });
       }
 
       // total tras descuento
