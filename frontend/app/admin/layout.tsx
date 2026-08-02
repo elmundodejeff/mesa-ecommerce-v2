@@ -35,6 +35,7 @@ export default function AdminLayout({
   const [logo, setLogo] = useState<string | null>(null);
   const [nombreSitio, setNombreSitio] = useState("Mesa Admin");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [badges, setBadges] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!obtenerToken()) {
@@ -49,6 +50,18 @@ export default function AdminLayout({
           setLogoUrl(c.logoUrl);
         })
         .catch(() => {});
+      // Contadores de atencion para los badges del menu
+      Promise.all([
+        api<{ leido: boolean }[]>("/contact", { auth: true }).catch(() => []),
+        api<{ visto: boolean }[]>("/orders", { auth: true }).catch(() => []),
+        api<unknown[]>("/blog/comentarios/pendientes", { auth: true }).catch(() => []),
+      ]).then(([mensajes, ordenes, comentarios]) => {
+        setBadges({
+          "/admin/contacto": mensajes.filter((m) => !m.leido).length,
+          "/admin/ordenes": ordenes.filter((o) => !o.visto).length,
+          "/admin/blog": comentarios.length,
+        });
+      }).catch(() => {});
     }
   }, [router]);
 
@@ -96,14 +109,24 @@ export default function AdminLayout({
               <Link
                 key={l.href}
                 href={l.href}
-                className={`block px-4 py-2.5 text-sm rounded-full transition-colors ${
+                className={`flex items-center justify-between px-4 py-2.5 text-sm rounded-full transition-colors ${
                   activo
                     ? "text-white font-medium"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
                 style={activo ? { backgroundColor: "var(--color-marca)" } : undefined}
               >
-                {l.label}
+                <span>{l.label}</span>
+                {badges[l.href] > 0 && (
+                  <span
+                    className={`ml-2 min-w-5 h-5 px-1.5 flex items-center justify-center text-xs font-bold rounded-full ${
+                      activo ? "bg-white text-gray-900" : "text-white"
+                    }`}
+                    style={!activo ? { backgroundColor: "#dc2626" } : undefined}
+                  >
+                    {badges[l.href]}
+                  </span>
+                )}
               </Link>
             );
           })}
