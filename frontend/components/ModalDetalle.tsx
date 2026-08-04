@@ -48,6 +48,7 @@ export default function ModalDetalle({
       productoId: producto.id,
       nombre: producto.nombre,
       precio: producto.precio,
+      stock: producto.stock,
     });
     setAgregado(true);
     setTimeout(() => setAgregado(false), 2000);

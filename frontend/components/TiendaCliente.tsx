@@ -6,6 +6,7 @@ import CardProducto from "./CardProducto";
 import type { ProductoCard } from "./CardProducto";
 import ModalDetalle from "./ModalDetalle";
 import CarritoLateral from "./CarritoLateral";
+import CarritoMovil from "./CarritoMovil";
 import type { Config } from "@/lib/config";
 import type { Categoria } from "@/app/page";
 
@@ -111,7 +112,9 @@ export default function TiendaCliente({
           ))}
         </div>
         </div>
-        <CarritoLateral colorMarca={config.colorMarca} />
+        <div className="hidden lg:block">
+          <CarritoLateral colorMarca={config.colorMarca} />
+        </div>
         </div>
       </main>
 
@@ -122,6 +125,9 @@ export default function TiendaCliente({
           onCerrar={() => setDetalle(null)}
         />
       )}
+      <CarritoMovil colorMarca={config.colorMarca} />
+      {/* Espacio para que la barra movil no tape contenido */}
+      <div className="h-20 lg:hidden" />
     </div>
   );
 }

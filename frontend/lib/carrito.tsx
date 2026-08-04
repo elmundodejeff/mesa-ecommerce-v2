@@ -7,6 +7,7 @@ export interface ItemCarrito {
   nombre: string;
   precio: number;
   cantidad: number;
+  stock: number;
 }
 
 interface CarritoCtx {
@@ -44,12 +45,15 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => {
       const existe = prev.find((i) => i.productoId === p.productoId);
       if (existe) {
+        // No superar el stock disponible
+        if (existe.cantidad >= p.stock) return prev;
         return prev.map((i) =>
           i.productoId === p.productoId
-            ? { ...i, cantidad: i.cantidad + 1 }
+            ? { ...i, cantidad: i.cantidad + 1, stock: p.stock }
             : i,
         );
       }
+      if (p.stock < 1) return prev;
       return [...prev, { ...p, cantidad: 1 }];
     });
   }
@@ -62,7 +66,9 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
     if (cantidad < 1) return;
     setItems((prev) =>
       prev.map((i) =>
-        i.productoId === productoId ? { ...i, cantidad } : i,
+        i.productoId === productoId
+          ? { ...i, cantidad: i.stock != null ? Math.min(cantidad, i.stock) : cantidad }
+          : i,
       ),
     );
   }

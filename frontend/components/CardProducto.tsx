@@ -93,7 +93,7 @@ export default function CardProducto({
         </button>
         <button
           onClick={() =>
-            agregar({ productoId: p.id, nombre: p.nombre, precio: p.precio })
+            agregar({ productoId: p.id, nombre: p.nombre, precio: p.precio, stock: p.stock })
           }
           disabled={p.stock < 1}
           className="flex-1 text-white py-2.5 font-medium btn-pill"
