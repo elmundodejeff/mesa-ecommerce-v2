@@ -52,6 +52,8 @@ model Orden {
   fechaEnvio       DateTime?
   fechaEntrega     DateTime?
   fechaCancelacion DateTime?
+  mpPreferenceId   String?
+  mpPaymentId      String?
 }
 
 model OrdenItem {

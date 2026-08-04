@@ -15,7 +15,7 @@ import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { StatsModule } from './modules/stats/stats.module';
-
+import { PaymentsModule } from './modules/payments/payments.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -32,6 +32,7 @@ import { StatsModule } from './modules/stats/stats.module';
     BlogModule,
     ContactModule,
     StatsModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
