@@ -56,13 +56,13 @@ export default function TiendaCliente({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="p-6 max-w-7xl mx-auto py-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">{titulo}</h1>
+      <main className="px-4 sm:px-6 max-w-7xl mx-auto py-6 sm:py-10">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-5 sm:mb-6">{titulo}</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
         <div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-3 items-end">
-          <div className="flex-1 min-w-40">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 grid grid-cols-2 md:flex md:flex-wrap gap-3 md:items-end">
+          <div className="col-span-2 md:flex-1 md:min-w-40">
             <label className="block text-xs text-gray-500 mb-1">Buscar</label>
             <input
               value={texto}
@@ -73,14 +73,14 @@ export default function TiendaCliente({
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1">Categoria</label>
-            <select value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} className="border rounded px-3 py-2 text-sm">
+            <select value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)} className="w-full border rounded px-3 py-2 text-sm">
               <option value="">Todas</option>
               {categorias.map((c) => (<option key={c.id} value={c.id}>{c.nombre}</option>))}
             </select>
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1">Idioma</label>
-            <select value={idioma} onChange={(e) => setIdioma(e.target.value)} className="border rounded px-3 py-2 text-sm">
+            <select value={idioma} onChange={(e) => setIdioma(e.target.value)} className="w-full border rounded px-3 py-2 text-sm">
               <option value="">Todos</option>
               <option value="Español">Español</option>
               <option value="Inglés">Inglés</option>
@@ -90,17 +90,17 @@ export default function TiendaCliente({
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1">Orden</label>
-            <select value={orden} onChange={(e) => setOrden(e.target.value)} className="border rounded px-3 py-2 text-sm">
+            <select value={orden} onChange={(e) => setOrden(e.target.value)} className="w-full border rounded px-3 py-2 text-sm">
               <option value="">Relevancia</option>
               <option value="precio_asc">Precio: menor a mayor</option>
               <option value="precio_desc">Precio: mayor a menor</option>
               <option value="nombre">Nombre A-Z</option>
             </select>
           </div>
-          <button onClick={aplicarFiltros} disabled={buscando} className="text-white px-5 py-2 text-sm font-medium btn-pill" style={{ backgroundColor: config.colorMarca }}>
+          <button onClick={aplicarFiltros} disabled={buscando} className="w-full md:w-auto text-white px-5 py-2 text-sm font-medium btn-pill" style={{ backgroundColor: config.colorMarca }}>
             {buscando ? "Buscando..." : "Filtrar"}
           </button>
-          <button onClick={limpiarFiltros} className="border px-4 py-2 rounded-full text-sm text-gray-600 btn-pill">
+          <button onClick={limpiarFiltros} className="w-full md:w-auto border px-4 py-2 rounded-full text-sm text-gray-600 btn-pill">
             Limpiar
           </button>
         </div>
