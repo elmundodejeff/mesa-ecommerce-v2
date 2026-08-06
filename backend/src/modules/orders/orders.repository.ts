@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../shared/prisma.service';
 import { DiscountsService } from '../discounts/discounts.service';
 import { LoyaltyService } from '../loyalty/loyalty.service';
+import { ShippingService } from '../shipping/shipping.service';
 
 interface ItemInput {
   productoId: number;
@@ -22,7 +23,11 @@ interface CrearOrdenInput {
   rutEnvio?: string;
   codigoPostalEnvio?: string;
   notaEntrega?: string;
+  servicioEnvioCodigo?: number;
 }
+
+// Minutos que una orden pendiente_pago mantiene la reserva antes de expirar.
+const MINUTOS_EXPIRACION = 30;
 
 @Injectable()
 export class OrdersRepository {
@@ -30,6 +35,7 @@ export class OrdersRepository {
     private readonly prisma: PrismaService,
     private readonly discounts: DiscountsService,
     private readonly loyalty: LoyaltyService,
+    private readonly shipping: ShippingService,
   ) {}
 
   findAll() {
@@ -95,7 +101,6 @@ export class OrdersRepository {
       let descuentoCodigoId: number | null = null;
       let avisoDescuento: string | null = null;
 
-      // 3a. Candidato: codigo manual escrito por el usuario
       if (input.codigo) {
         const v = await this.discounts.validar(input.codigo, input.userId);
         if (v.valido) {
@@ -112,13 +117,11 @@ export class OrdersRepository {
         }
       }
 
-      // 3b. Candidato: mejor descuento personal automatico (solo logueados)
       if (input.userId) {
         const personal = await this.discounts.mejorDescuentoPersonal(
           input.userId,
           subtotal,
         );
-        // Gana el de mayor ahorro
         if (personal && personal.monto > descuentoMonto) {
           descuentoMonto = personal.monto;
           descuentoCodigo = personal.codigo;
@@ -127,7 +130,6 @@ export class OrdersRepository {
         }
       }
 
-      // 3c. Incrementar usos del codigo ganador y registrar uso por usuario
       if (descuentoCodigoId !== null) {
         await tx.codigoDescuento.update({
           where: { id: descuentoCodigoId },
@@ -140,7 +142,6 @@ export class OrdersRepository {
         }
       }
 
-      // total tras descuento
       let total = subtotal - descuentoMonto;
 
       // 4. Canje de puntos (solo logueados). 1 punto = $1.
@@ -155,10 +156,8 @@ export class OrdersRepository {
           if (input.puntosAUsar > saldo) {
             avisoPuntos = `Saldo insuficiente (tienes ${saldo} puntos)`;
           } else {
-            // No canjear mas que el total
             puntosUsados = Math.min(input.puntosAUsar, total);
             total -= puntosUsados;
-            // Registrar movimiento negativo
             await tx.movimientoPuntos.create({
               data: {
                 userId: input.userId,
@@ -170,7 +169,7 @@ export class OrdersRepository {
         }
       }
 
-      // 5. Descontar stock
+      // 5. Descontar stock (RESERVA)
       for (const item of input.items) {
         await tx.producto.update({
           where: { id: item.productoId },
@@ -178,13 +177,40 @@ export class OrdersRepository {
         });
       }
 
-      // 6. Crear orden
+      // 6. Crear orden en estado pendiente_pago con expiracion
+      const expira = new Date();
+      expira.setMinutes(expira.getMinutes() + MINUTOS_EXPIRACION);
+
+      // Envio: re-cotizar en backend (no confiar en precio del cliente).
+      let costoEnvio = 0;
+      let servicioEnvio: string | null = null;
+      if (input.servicioEnvioCodigo && input.comunaEnvio) {
+        try {
+          const opciones = await this.shipping.cotizarCarrito(
+            input.items.map((i) => ({ productoId: i.productoId, cantidad: i.cantidad })),
+            input.comunaEnvio,
+          );
+          const elegida = opciones.find((o) => o.codigo === input.servicioEnvioCodigo);
+          if (elegida) {
+            costoEnvio = elegida.precio;
+            servicioEnvio = elegida.servicio;
+            total += costoEnvio;
+          }
+        } catch {
+          // Si falla la cotizacion, la orden se crea sin envio.
+        }
+      }
+
       const orden = await tx.orden.create({
         data: {
           total,
           descuentoMonto,
           descuentoCodigo,
           puntosUsados,
+          costoEnvio,
+          servicioEnvio,
+          estado: 'pendiente_pago',
+          fechaExpiracion: expira,
           userId: input.userId,
           nombreEnvio: input.nombreEnvio,
           direccionEnvio: input.direccionEnvio,
@@ -233,10 +259,104 @@ export class OrdersRepository {
     });
   }
 
+  // Confirma el pago de una orden pendiente. Idempotente: solo actua si esta pendiente_pago.
+  async confirmarPago(ordenId: number, mpPaymentId?: string) {
+    const orden = await this.prisma.orden.findUnique({ where: { id: ordenId } });
+    if (!orden) return null;
+    if (orden.estado !== 'pendiente_pago') return orden; // ya procesada, no hacer nada
+
+    return this.prisma.orden.update({
+      where: { id: ordenId },
+      data: {
+        estado: 'pagado',
+        fechaExpiracion: null,
+        mpPaymentId: mpPaymentId ?? orden.mpPaymentId,
+      },
+    });
+  }
+
+  // Cancela una orden pendiente y REVIERTE la reserva (stock, puntos, codigo).
+  // Idempotente: solo actua si esta pendiente_pago.
+  async cancelarOrden(ordenId: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const orden = await tx.orden.findUnique({
+        where: { id: ordenId },
+        include: { items: true },
+      });
+      if (!orden) return null;
+      if (orden.estado !== 'pendiente_pago') return orden; // no cancelar pagadas ni recancelar
+
+      // 1. Devolver stock
+      for (const item of orden.items) {
+        await tx.producto.update({
+          where: { id: item.productoId },
+          data: { stock: { increment: item.cantidad } },
+        });
+      }
+
+      // 2. Devolver puntos usados (movimiento positivo tipo devuelto)
+      if (orden.userId && orden.puntosUsados > 0) {
+        await tx.movimientoPuntos.create({
+          data: {
+            userId: orden.userId,
+            cantidad: orden.puntosUsados,
+            tipo: 'devuelto',
+            ordenId: orden.id,
+          },
+        });
+      }
+
+      // 3. Anular puntos ganados de esta orden (se ubican por ordenId)
+      await tx.movimientoPuntos.deleteMany({
+        where: { ordenId: orden.id, tipo: 'ganado' },
+      });
+
+      // 4. Liberar codigo de descuento (decrementar usos + borrar uso del usuario)
+      if (orden.descuentoCodigo) {
+        const cod = await tx.codigoDescuento.findUnique({
+          where: { codigo: orden.descuentoCodigo },
+        });
+        if (cod) {
+          if (cod.usos > 0) {
+            await tx.codigoDescuento.update({
+              where: { id: cod.id },
+              data: { usos: { decrement: 1 } },
+            });
+          }
+          if (orden.userId) {
+            await tx.usoCodigoDescuento.deleteMany({
+              where: { codigoId: cod.id, userId: orden.userId },
+            });
+          }
+        }
+      }
+
+      // 5. Marcar orden como cancelada
+      return tx.orden.update({
+        where: { id: ordenId },
+        data: {
+          estado: 'cancelado',
+          fechaExpiracion: null,
+          fechaCancelacion: new Date(),
+        },
+      });
+    });
+  }
+
+  // Busca ordenes pendientes ya expiradas (para el proceso automatico).
+  ordenesExpiradas() {
+    return this.prisma.orden.findMany({
+      where: {
+        estado: 'pendiente_pago',
+        fechaExpiracion: { lt: new Date() },
+      },
+      select: { id: true },
+    });
+  }
+
   updateEstado(id: number, estado: string) {
     const data: any = { estado };
     const ahora = new Date();
-    // Registrar la fecha del hito segun el nuevo estado
     if (estado === "enviado") data.fechaEnvio = ahora;
     if (estado === "entregado") data.fechaEntrega = ahora;
     if (estado === "cancelado") data.fechaCancelacion = ahora;
@@ -253,5 +373,4 @@ export class OrdersRepository {
       orderBy: { fecha: "desc" },
     });
   }
-
 }

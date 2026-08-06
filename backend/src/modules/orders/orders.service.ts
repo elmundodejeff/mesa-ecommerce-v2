@@ -1,15 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { OrdersRepository } from './orders.repository';
 import { CreateOrdenDto } from './dto/create-orden.dto';
-
 @Injectable()
 export class OrdersService {
   constructor(private readonly repo: OrdersRepository) {}
-
   findAll() {
     return this.repo.findAll();
   }
-
   async findOne(id: number) {
     const orden = await this.repo.findOne(id);
     if (!orden) {
@@ -17,17 +14,23 @@ export class OrdersService {
     }
     return orden;
   }
-
   checkout(dto: CreateOrdenDto, userId?: string) {
     return this.repo.crearOrden({ ...dto, userId });
   }
-
   misOrdenes(userId: string) {
     return this.repo.misOrdenes(userId);
   }
-
   async cambiarEstado(id: number, estado: string) {
     await this.findOne(id);
     return this.repo.updateEstado(id, estado);
+  }
+  confirmarPago(ordenId: number, mpPaymentId?: string) {
+    return this.repo.confirmarPago(ordenId, mpPaymentId);
+  }
+  cancelarOrden(ordenId: number) {
+    return this.repo.cancelarOrden(ordenId);
+  }
+  ordenesExpiradas() {
+    return this.repo.ordenesExpiradas();
   }
 }

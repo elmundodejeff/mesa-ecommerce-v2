@@ -69,4 +69,7 @@ export class CreateOrdenDto {
   @IsInt()
   @Min(0)
   puntosAUsar?: number;
+  @IsOptional()
+  @IsInt()
+  servicioEnvioCodigo?: number;
 }

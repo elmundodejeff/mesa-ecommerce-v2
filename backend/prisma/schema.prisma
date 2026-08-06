@@ -21,6 +21,10 @@ model Producto {
   fechaLanzamiento DateTime?
   textoPreventa    String?
   idioma           String?
+  pesoKg    Float @default(1.0)
+  altoCm    Int   @default(7)
+  anchoCm   Int   @default(30)
+  largoCm   Int   @default(30)
   secciones Seccion[] @relation("ProductoSeccion")
 }
 
@@ -54,6 +58,9 @@ model Orden {
   fechaCancelacion DateTime?
   mpPreferenceId   String?
   mpPaymentId      String?
+  fechaExpiracion  DateTime?
+  costoEnvio      Int     @default(0)
+  servicioEnvio   String?
 }
 
 model OrdenItem {
@@ -121,6 +128,12 @@ model Config {
   diasVencimientoPuntos  Int @default(365)
   sobreNosotros Json?
   bloquesHome   Json?
+  envioComunaOrigen   String  @default("Providencia")
+  envioDireccionOrigen String @default("Metro Tobalaba, Providencia")
+  envioPesoDefault    Float   @default(1.0)
+  envioAltoDefault    Int     @default(7)
+  envioAnchoDefault   Int     @default(30)
+  envioLargoDefault   Int     @default(30)
 }
 
 model ImagenProducto {

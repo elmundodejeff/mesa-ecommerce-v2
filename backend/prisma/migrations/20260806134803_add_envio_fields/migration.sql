@@ -1,0 +1,13 @@
+-- AlterTable
+ALTER TABLE "Config" ADD COLUMN     "envioAltoDefault" INTEGER NOT NULL DEFAULT 7,
+ADD COLUMN     "envioAnchoDefault" INTEGER NOT NULL DEFAULT 30,
+ADD COLUMN     "envioComunaOrigen" TEXT NOT NULL DEFAULT 'Providencia',
+ADD COLUMN     "envioDireccionOrigen" TEXT NOT NULL DEFAULT 'Metro Tobalaba, Providencia',
+ADD COLUMN     "envioLargoDefault" INTEGER NOT NULL DEFAULT 30,
+ADD COLUMN     "envioPesoDefault" DOUBLE PRECISION NOT NULL DEFAULT 1.0;
+
+-- AlterTable
+ALTER TABLE "Producto" ADD COLUMN     "altoCm" INTEGER NOT NULL DEFAULT 7,
+ADD COLUMN     "anchoCm" INTEGER NOT NULL DEFAULT 30,
+ADD COLUMN     "largoCm" INTEGER NOT NULL DEFAULT 30,
+ADD COLUMN     "pesoKg" DOUBLE PRECISION NOT NULL DEFAULT 1.0;

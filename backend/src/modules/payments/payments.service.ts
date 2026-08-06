@@ -1,12 +1,16 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { MercadoPagoConfig, Preference } from 'mercadopago';
+import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import { PrismaService } from '../../shared/prisma.service';
+import { OrdersService } from '../orders/orders.service';
 
 @Injectable()
 export class PaymentsService {
   private client: MercadoPagoConfig;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly orders: OrdersService,
+  ) {
     const token = process.env.MP_ACCESS_TOKEN;
     if (!token) {
       throw new Error('MP_ACCESS_TOKEN no esta definido en el .env');
@@ -62,5 +66,44 @@ export class PaymentsService {
       initPoint: result.init_point,
       sandboxInitPoint: result.sandbox_init_point,
     };
+  }
+
+  // Procesa la notificacion (webhook) de MercadoPago.
+  // MP envia el id del pago; consultamos su estado y confirmamos/cancelamos la orden.
+  async procesarWebhook(query: any, body: any) {
+    // MP puede mandar el id de distintas formas segun el tipo de evento.
+    const tipo = query?.type ?? body?.type;
+    const paymentId =
+      query?.['data.id'] ?? body?.data?.id ?? query?.id ?? null;
+
+    // Solo nos interesan eventos de pago.
+    if (tipo && tipo !== 'payment') return { ignored: true };
+    if (!paymentId) return { ignored: true };
+
+    // Consultar el pago real en la API de MP.
+    const payment = new Payment(this.client);
+    let info: any;
+    try {
+      info = await payment.get({ id: String(paymentId) });
+    } catch {
+      return { ignored: true };
+    }
+
+    const estado = info?.status; // approved | rejected | pending | cancelled ...
+    const ordenId = Number(info?.external_reference);
+    if (!ordenId) return { ignored: true };
+
+    if (estado === 'approved') {
+      await this.orders.confirmarPago(ordenId, String(paymentId));
+      return { ok: true, estado };
+    }
+
+    if (estado === 'rejected' || estado === 'cancelled') {
+      await this.orders.cancelarOrden(ordenId);
+      return { ok: true, estado };
+    }
+
+    // pending u otros: no hacemos nada, la orden sigue pendiente hasta expirar.
+    return { ok: true, estado };
   }
 }

@@ -47,6 +47,13 @@ interface DescuentoPersonal {
   monto: number;
 }
 
+interface OpcionEnvio {
+  servicio: string;
+  codigo: number;
+  precio: number;
+  pesoFinal: string;
+}
+
 export default function CheckoutCliente() {
   const { items, cambiarCantidad, quitar, vaciar, total } = useCarrito();
   const [nombre, setNombre] = useState("");
@@ -71,6 +78,13 @@ export default function CheckoutCliente() {
   const [validandoCodigo, setValidandoCodigo] = useState(false);
   const [errorCodigo, setErrorCodigo] = useState("");
   const [personal, setPersonal] = useState<DescuentoPersonal | null>(null);
+
+  // Envio (Chilexpress)
+  const [comuna, setComuna] = useState("");
+  const [opcionesEnvio, setOpcionesEnvio] = useState<OpcionEnvio[]>([]);
+  const [envioElegido, setEnvioElegido] = useState<OpcionEnvio | null>(null);
+  const [cotizandoEnvio, setCotizandoEnvio] = useState(false);
+  const [errorEnvio, setErrorEnvio] = useState("");
 
   // Pre-cargar codigo y puntos del carrito lateral
   useEffect(() => {
@@ -168,7 +182,38 @@ export default function CheckoutCliente() {
   const totalTrasDescuento = Math.max(0, total - montoDescuento);
   const maxPuntos = Math.min(saldoPuntos ?? 0, totalTrasDescuento);
   const puntosNum = Math.min(Math.max(0, Number(puntosAUsar) || 0), maxPuntos);
-  const totalFinal = Math.max(0, totalTrasDescuento - puntosNum);
+  async function cotizarEnvio() {
+    if (!comuna.trim()) {
+      setErrorEnvio("Ingresa tu comuna");
+      return;
+    }
+    setErrorEnvio("");
+    setCotizandoEnvio(true);
+    setOpcionesEnvio([]);
+    setEnvioElegido(null);
+    try {
+      const ops = await api<OpcionEnvio[]>("/shipping/cotizar-carrito", {
+        method: "POST",
+        body: {
+          items: items.map((i) => ({ productoId: i.productoId, cantidad: i.cantidad })),
+          comunaDestino: comuna.trim(),
+        },
+      });
+      if (ops.length === 0) {
+        setErrorEnvio("No hay envio disponible para esa comuna");
+      } else {
+        setOpcionesEnvio(ops);
+        setEnvioElegido(ops[0]); // preseleccionar la primera (mas barata suele venir primero)
+      }
+    } catch (e) {
+      setErrorEnvio(e instanceof Error ? e.message : "No se pudo cotizar el envio");
+    } finally {
+      setCotizandoEnvio(false);
+    }
+  }
+
+  const costoEnvio = envioElegido?.precio ?? 0;
+  const totalFinal = Math.max(0, totalTrasDescuento - puntosNum) + costoEnvio;
 
   async function pagar(e: React.FormEvent) {
     e.preventDefault();
@@ -188,15 +233,25 @@ export default function CheckoutCliente() {
           notaEntrega: nota || undefined,
           codigo: aplicado?.codigo || undefined,
           puntosAUsar: puntosNum || undefined,
+          comunaEnvio: comuna || undefined,
+          servicioEnvioCodigo: envioElegido?.codigo || undefined,
         },
       });
-      setOrden(resp);
-      vaciar();
-      localStorage.removeItem("mesa_descuento");
-      localStorage.removeItem("mesa_puntos");
+      // Crear preferencia de pago en MercadoPago y redirigir.
+      // NO vaciamos el carrito aqui: si el pago falla o se abandona, el carrito
+      // se mantiene para reintentar. Se vacia al volver con pago exitoso.
+      const pref = await api<{ initPoint: string; sandboxInitPoint: string }>(
+        `/payments/preferencia/${resp.id}`,
+        { method: "POST" }
+      );
+      const url = pref.sandboxInitPoint || pref.initPoint;
+      if (!url) {
+        throw new Error("No se pudo iniciar el pago");
+      }
+      window.location.href = url;
+      return;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al procesar");
-    } finally {
       setCargando(false);
     }
   }
@@ -326,6 +381,10 @@ export default function CheckoutCliente() {
                     <input value={region} onChange={(e) => setRegion(e.target.value)} placeholder="Región" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm" />
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Comuna</label>
+                    <input value={comuna} onChange={(e) => { setComuna(e.target.value); setOpcionesEnvio([]); setEnvioElegido(null); }} placeholder="Ej: Providencia" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm" />
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
                     <input value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+56 9 ..." className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm" />
                   </div>
@@ -397,6 +456,37 @@ export default function CheckoutCliente() {
                   </div>
                 )}
               </section>
+
+              {/* Envio */}
+              <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+                <h2 className="font-semibold text-gray-900">Envio</h2>
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">
+                    Calcula el despacho para tu comuna{comuna ? `: ${comuna}` : " (ingresala en Datos de entrega)"}.
+                  </p>
+                  <button type="button" onClick={cotizarEnvio} disabled={cotizandoEnvio || !comuna.trim()} className="text-white px-5 py-2.5 text-sm btn-pill disabled:opacity-50" style={{ backgroundColor: "var(--color-marca)" }}>
+                    {cotizandoEnvio ? "Calculando..." : "Calcular envio"}
+                  </button>
+                  {errorEnvio && <p className="text-red-600 text-xs mt-1">{errorEnvio}</p>}
+                </div>
+
+                {opcionesEnvio.length > 0 && (
+                  <div className="space-y-2">
+                    {opcionesEnvio.map((op) => (
+                      <button
+                        key={op.codigo}
+                        type="button"
+                        onClick={() => setEnvioElegido(op)}
+                        className={`w-full text-left rounded-xl border p-3 transition flex justify-between items-center ${envioElegido?.codigo === op.codigo ? "ring-2" : "hover:bg-gray-50"}`}
+                        style={envioElegido?.codigo === op.codigo ? { borderColor: "var(--color-marca)", ["--tw-ring-color" as string]: "var(--color-marca)" } : {}}
+                      >
+                        <span className="text-sm font-medium text-gray-800">{op.servicio}</span>
+                        <span className="text-sm font-semibold text-gray-900">${op.precio.toLocaleString("es-CL")}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </section>
             </div>
 
             {/* DERECHA: resumen sticky */}
@@ -435,6 +525,12 @@ export default function CheckoutCliente() {
                       <span>-${puntosNum.toLocaleString("es-CL")}</span>
                     </div>
                   )}
+                  {envioElegido && (
+                    <div className="flex justify-between text-gray-500">
+                      <span>Envio ({envioElegido.servicio})</span>
+                      <span>${costoEnvio.toLocaleString("es-CL")}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-bold text-lg text-gray-900 pt-1">
                     <span>Total</span><span>${totalFinal.toLocaleString("es-CL")}</span>
                   </div>
@@ -442,8 +538,8 @@ export default function CheckoutCliente() {
 
                 {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
 
-                <button type="submit" disabled={cargando} className="w-full text-white py-3 mt-4 btn-pill font-medium" style={{ backgroundColor: "var(--color-marca)" }}>
-                  {cargando ? "Procesando..." : "Pagar"}
+                <button type="submit" disabled={cargando || !envioElegido} className="w-full text-white py-3 mt-4 btn-pill font-medium disabled:opacity-50" style={{ backgroundColor: "var(--color-marca)" }}>
+                  {cargando ? "Procesando..." : !envioElegido ? "Calcula el envio para continuar" : "Pagar"}
                 </button>
               </div>
             </div>
