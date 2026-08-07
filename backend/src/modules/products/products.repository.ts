@@ -6,6 +6,10 @@ interface ProductoData {
   descripcion?: string;
   precio?: number;
   stock?: number;
+  pesoKg?: number;
+  altoCm?: number;
+  anchoCm?: number;
+  largoCm?: number;
   destacado?: boolean;
   sku?: string;
   preventa?: boolean;

@@ -14,6 +14,8 @@ export class UpdateConfigDto {
   @IsOptional() @IsString() contactoTiktok?: string;
   @IsOptional() @IsString() contactoTelefono?: string;
   @IsOptional() @IsString() contactoDireccion?: string;
+  @IsOptional() @IsString() envioComunaOrigen?: string;
+  @IsOptional() @IsString() envioDireccionOrigen?: string;
   @IsOptional() @IsBoolean() preventaActiva?: boolean;
   @IsOptional() @IsString() tituloPreventa?: string;
   @IsOptional() @IsInt() ordenDestacados?: number;

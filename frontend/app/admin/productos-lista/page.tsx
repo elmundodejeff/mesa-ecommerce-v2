@@ -12,6 +12,10 @@ interface Producto {
   nombre: string;
   precio: number;
   stock: number;
+  pesoKg?: number;
+  altoCm?: number;
+  anchoCm?: number;
+  largoCm?: number;
   descripcion: string | null;
   idioma?: string | null;
   preventa?: boolean;
@@ -31,6 +35,10 @@ export default function AdminProductos() {
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
   const [stock, setStock] = useState("");
+  const [pesoKg, setPesoKg] = useState("1");
+  const [altoCm, setAltoCm] = useState("7");
+  const [anchoCm, setAnchoCm] = useState("30");
+  const [largoCm, setLargoCm] = useState("30");
   const [descripcion, setDescripcion] = useState("");
   const [idioma, setIdioma] = useState("");
   const [preventa, setPreventa] = useState(false);
@@ -71,6 +79,10 @@ export default function AdminProductos() {
           nombre,
           precio: Number(precio),
           stock: Number(stock),
+          pesoKg: Number(pesoKg),
+          altoCm: Number(altoCm),
+          anchoCm: Number(anchoCm),
+          largoCm: Number(largoCm),
           descripcion: descripcion || undefined,
           idioma: idioma || undefined,
           preventa,
@@ -127,6 +139,22 @@ export default function AdminProductos() {
           <div>
             <label className="admin-label">Stock</label>
             <input placeholder="0" type="number" value={stock} onChange={(e) => setStock(e.target.value)} required className="admin-input" />
+          </div>
+          <div>
+            <label className="admin-label">Peso (kg)</label>
+            <input placeholder="1" type="number" step="0.1" value={pesoKg} onChange={(e) => setPesoKg(e.target.value)} className="admin-input" />
+          </div>
+          <div>
+            <label className="admin-label">Alto (cm)</label>
+            <input placeholder="7" type="number" value={altoCm} onChange={(e) => setAltoCm(e.target.value)} className="admin-input" />
+          </div>
+          <div>
+            <label className="admin-label">Ancho (cm)</label>
+            <input placeholder="30" type="number" value={anchoCm} onChange={(e) => setAnchoCm(e.target.value)} className="admin-input" />
+          </div>
+          <div>
+            <label className="admin-label">Largo (cm)</label>
+            <input placeholder="30" type="number" value={largoCm} onChange={(e) => setLargoCm(e.target.value)} className="admin-input" />
           </div>
           <div>
             <label className="admin-label">Idioma (opcional)</label>
@@ -231,6 +259,10 @@ function ModalEditar({
   const [nombre, setNombre] = useState(producto.nombre);
   const [precio, setPrecio] = useState(String(producto.precio));
   const [stock, setStock] = useState(String(producto.stock));
+  const [pesoKg, setPesoKg] = useState(String(producto.pesoKg ?? 1));
+  const [altoCm, setAltoCm] = useState(String(producto.altoCm ?? 7));
+  const [anchoCm, setAnchoCm] = useState(String(producto.anchoCm ?? 30));
+  const [largoCm, setLargoCm] = useState(String(producto.largoCm ?? 30));
   const [descripcion, setDescripcion] = useState(producto.descripcion || "");
   const [idioma, setIdioma] = useState(producto.idioma || "");
   const [catIds, setCatIds] = useState<number[]>((producto.categorias || []).map((c) => c.id));
@@ -259,6 +291,10 @@ function ModalEditar({
           nombre,
           precio: Number(precio),
           stock: Number(stock),
+          pesoKg: Number(pesoKg),
+          altoCm: Number(altoCm),
+          anchoCm: Number(anchoCm),
+          largoCm: Number(largoCm),
           descripcion: descripcion || undefined,
           idioma: idioma || undefined,
           categoriaIds: catIds,
@@ -293,6 +329,22 @@ function ModalEditar({
             <div>
               <label className="admin-label">Stock</label>
               <input value={stock} onChange={(e) => setStock(e.target.value)} type="number" placeholder="Stock" className="admin-input" />
+            </div>
+            <div>
+              <label className="admin-label">Peso (kg)</label>
+              <input value={pesoKg} onChange={(e) => setPesoKg(e.target.value)} type="number" step="0.1" placeholder="Peso" className="admin-input" />
+            </div>
+            <div>
+              <label className="admin-label">Alto (cm)</label>
+              <input value={altoCm} onChange={(e) => setAltoCm(e.target.value)} type="number" placeholder="Alto" className="admin-input" />
+            </div>
+            <div>
+              <label className="admin-label">Ancho (cm)</label>
+              <input value={anchoCm} onChange={(e) => setAnchoCm(e.target.value)} type="number" placeholder="Ancho" className="admin-input" />
+            </div>
+            <div>
+              <label className="admin-label">Largo (cm)</label>
+              <input value={largoCm} onChange={(e) => setLargoCm(e.target.value)} type="number" placeholder="Largo" className="admin-input" />
             </div>
           </div>
           <div>

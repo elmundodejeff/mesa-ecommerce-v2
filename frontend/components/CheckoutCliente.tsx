@@ -26,6 +26,7 @@ interface Direccion {
   calle: string;
   ciudad: string;
   region: string;
+  comuna?: string | null;
   esPrincipal: boolean;
 }
 
@@ -120,6 +121,7 @@ export default function CheckoutCliente() {
         setDireccion(principal.calle);
         setCiudad(principal.ciudad);
         setRegion(principal.region);
+        setComuna(principal.comuna || "");
       }
     }).catch(() => {});
   }, []);
@@ -134,11 +136,11 @@ export default function CheckoutCliente() {
   function elegirDireccion(id: string) {
     setDirSeleccionada(id);
     if (id === "nueva") {
-      setDireccion(""); setCiudad(""); setRegion("");
+      setDireccion(""); setCiudad(""); setRegion(""); setComuna(""); setOpcionesEnvio([]); setEnvioElegido(null);
       return;
     }
     const d = direcciones.find((x) => x.id === id);
-    if (d) { setDireccion(d.calle); setCiudad(d.ciudad); setRegion(d.region); }
+    if (d) { setDireccion(d.calle); setCiudad(d.ciudad); setRegion(d.region); setComuna(d.comuna || ""); setOpcionesEnvio([]); setEnvioElegido(null); }
   }
 
   async function aplicarCodigo() {

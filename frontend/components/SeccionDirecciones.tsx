@@ -9,6 +9,7 @@ interface Direccion {
   calle: string;
   ciudad: string;
   region: string;
+  comuna?: string | null;
   esPrincipal: boolean;
 }
 
@@ -17,7 +18,7 @@ const inp = "border rounded px-3 py-2 text-sm";
 export default function SeccionDirecciones() {
   const [lista, setLista] = useState<Direccion[]>([]);
   const [error, setError] = useState("");
-  const [nueva, setNueva] = useState({ alias: "", calle: "", ciudad: "", region: "" });
+  const [nueva, setNueva] = useState({ alias: "", calle: "", ciudad: "", region: "", comuna: "" });
 
   async function cargar() {
     try {
@@ -37,7 +38,7 @@ export default function SeccionDirecciones() {
     setError("");
     try {
       await api("/users/me/direcciones", { method: "POST", auth: true, body: nueva });
-      setNueva({ alias: "", calle: "", ciudad: "", region: "" });
+      setNueva({ alias: "", calle: "", ciudad: "", region: "", comuna: "" });
       await cargar();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
@@ -76,7 +77,7 @@ export default function SeccionDirecciones() {
               {d.esPrincipal && (
                 <span className="ml-2 text-xs px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: "var(--color-marca)" }}>Principal</span>
               )}
-              <p className="text-gray-500 text-xs mt-0.5">{d.calle}, {d.ciudad}, {d.region}</p>
+              <p className="text-gray-500 text-xs mt-0.5">{d.calle}, {d.ciudad}, {d.region}{d.comuna ? `, ${d.comuna}` : ""}</p>
             </div>
             <div className="flex gap-3 text-xs">
               {!d.esPrincipal && (
@@ -88,11 +89,12 @@ export default function SeccionDirecciones() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
         <input className={inp} placeholder="Alias (casa)" value={nueva.alias} onChange={(e) => setNueva({ ...nueva, alias: e.target.value })} />
         <input className={inp} placeholder="Calle" value={nueva.calle} onChange={(e) => setNueva({ ...nueva, calle: e.target.value })} />
         <input className={inp} placeholder="Ciudad" value={nueva.ciudad} onChange={(e) => setNueva({ ...nueva, ciudad: e.target.value })} />
         <input className={inp} placeholder="Region" value={nueva.region} onChange={(e) => setNueva({ ...nueva, region: e.target.value })} />
+        <input className={inp} placeholder="Comuna" value={nueva.comuna} onChange={(e) => setNueva({ ...nueva, comuna: e.target.value })} />
       </div>
       {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
       <button onClick={agregar} className="mt-3 text-white px-6 py-2 btn-pill" style={{ backgroundColor: "var(--color-marca)" }}>

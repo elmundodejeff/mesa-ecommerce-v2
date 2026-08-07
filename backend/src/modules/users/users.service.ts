@@ -86,7 +86,7 @@ export class UsersService {
   }
 
   async crearDireccion(userId: string, data: {
-    alias: string; calle: string; ciudad: string; region: string; esPrincipal?: boolean;
+    alias: string; calle: string; ciudad: string; region: string; comuna?: string; esPrincipal?: boolean;
   }) {
     if (data.esPrincipal) {
       await this.repo.desmarcarPrincipales(userId);
@@ -95,7 +95,7 @@ export class UsersService {
   }
 
   async actualizarDireccion(userId: string, id: string, data: {
-    alias?: string; calle?: string; ciudad?: string; region?: string; esPrincipal?: boolean;
+    alias?: string; calle?: string; ciudad?: string; region?: string; comuna?: string; esPrincipal?: boolean;
   }) {
     const dir = await this.repo.buscarDireccion(id);
     if (!dir) throw new NotFoundException("Direccion no encontrada");

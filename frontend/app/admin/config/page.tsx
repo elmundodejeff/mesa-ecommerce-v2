@@ -21,6 +21,8 @@ interface ConfigData {
   contactoTelefono: string | null;
   contactoDireccion: string | null;
   contactoHorario: string | null;
+  envioComunaOrigen: string | null;
+  envioDireccionOrigen: string | null;
   sobreNosotros?: SobreNosotrosData;
   bloquesHome?: Record<string, unknown>;
 }
@@ -85,6 +87,8 @@ export default function AdminConfig() {
           contactoTelefono: config.contactoTelefono || undefined,
           contactoDireccion: config.contactoDireccion || undefined,
           contactoHorario: config.contactoHorario || undefined,
+          envioComunaOrigen: config.envioComunaOrigen || undefined,
+          envioDireccionOrigen: config.envioDireccionOrigen || undefined,
           contactoInstagram: config.contactoInstagram || undefined,
           contactoTiktok: config.contactoTiktok || undefined,
         },
@@ -196,6 +200,12 @@ export default function AdminConfig() {
           </Campo>
           <Campo label="Dirección">
             <input value={config.contactoDireccion || ""} onChange={(e) => set("contactoDireccion", e.target.value)} className="admin-input" />
+          </Campo>
+          <Campo label="Comuna de origen (envíos)">
+            <input value={config.envioComunaOrigen || ""} onChange={(e) => set("envioComunaOrigen", e.target.value)} placeholder="Providencia" className="admin-input" />
+          </Campo>
+          <Campo label="Dirección de despacho (envíos)">
+            <input value={config.envioDireccionOrigen || ""} onChange={(e) => set("envioDireccionOrigen", e.target.value)} placeholder="Metro Tobalaba, Providencia" className="admin-input" />
           </Campo>
           <Campo label="Horario">
             <input value={config.contactoHorario || ""} onChange={(e) => set("contactoHorario", e.target.value)} className="admin-input" />

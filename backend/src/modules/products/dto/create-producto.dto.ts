@@ -1,6 +1,7 @@
 import {
   IsString,
   IsInt,
+  IsNumber,
   IsBoolean,
   IsOptional,
   IsArray,
@@ -24,6 +25,22 @@ export class CreateProductoDto {
   @IsInt()
   @Min(0)
   stock: number;
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  pesoKg?: number;
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  altoCm?: number;
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  anchoCm?: number;
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  largoCm?: number;
 
   @IsOptional()
   @IsBoolean()

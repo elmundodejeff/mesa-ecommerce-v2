@@ -102,6 +102,7 @@ model Direccion {
   calle      String
   ciudad     String
   region     String
+  comuna     String?
   esPrincipal Boolean @default(false)
 }
 

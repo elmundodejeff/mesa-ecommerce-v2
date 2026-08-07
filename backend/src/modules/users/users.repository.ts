@@ -57,7 +57,7 @@ export class UsersRepository {
   }
 
   crearDireccion(userId: string, data: {
-    alias: string; calle: string; ciudad: string; region: string; esPrincipal?: boolean;
+    alias: string; calle: string; ciudad: string; region: string; comuna?: string; esPrincipal?: boolean;
   }) {
     return this.prisma.direccion.create({
       data: { ...data, userId },
@@ -65,7 +65,7 @@ export class UsersRepository {
   }
 
   actualizarDireccion(id: string, data: {
-    alias?: string; calle?: string; ciudad?: string; region?: string; esPrincipal?: boolean;
+    alias?: string; calle?: string; ciudad?: string; region?: string; comuna?: string; esPrincipal?: boolean;
   }) {
     return this.prisma.direccion.update({ where: { id }, data });
   }
