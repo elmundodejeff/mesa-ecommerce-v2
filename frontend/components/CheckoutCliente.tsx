@@ -82,6 +82,10 @@ export default function CheckoutCliente() {
 
   // Envio (Chilexpress)
   const [comuna, setComuna] = useState("");
+  const [regionCodigo, setRegionCodigo] = useState("");
+  const [regiones, setRegiones] = useState<{ codigo: string; nombre: string }[]>([]);
+  const [comunasDisp, setComunasDisp] = useState<{ codigo: string; nombre: string }[]>([]);
+  const [pendienteComuna, setPendienteComuna] = useState<{ region: string; comuna: string } | null>(null);
   const [opcionesEnvio, setOpcionesEnvio] = useState<OpcionEnvio[]>([]);
   const [envioElegido, setEnvioElegido] = useState<OpcionEnvio | null>(null);
   const [cotizandoEnvio, setCotizandoEnvio] = useState(false);
@@ -121,7 +125,7 @@ export default function CheckoutCliente() {
         setDireccion(principal.calle);
         setCiudad(principal.ciudad);
         setRegion(principal.region);
-        setComuna(principal.comuna || "");
+        setPendienteComuna({ region: principal.region, comuna: principal.comuna || "" });
       }
     }).catch(() => {});
   }, []);
@@ -133,6 +137,25 @@ export default function CheckoutCliente() {
       .then(setPersonal).catch(() => setPersonal(null));
   }, [logueado, total]);
 
+  // Aplica region + comuna de una direccion guardada: resuelve el codigo de region,
+  // carga sus comunas, y recien ahi setea la comuna (para que el select la encuentre).
+  async function aplicarRegionComuna(nombreRegion: string, nombreComuna: string) {
+    setRegion(nombreRegion);
+    setOpcionesEnvio([]);
+    setEnvioElegido(null);
+    const r = regiones.find((x) => x.nombre === nombreRegion);
+    if (!r) { setComuna(""); setComunasDisp([]); return; }
+    setRegionCodigo(r.codigo);
+    try {
+      const cs = await api<{ codigo: string; nombre: string }[]>(`/shipping/comunas?region=${r.codigo}`);
+      setComunasDisp(cs);
+      setComuna(nombreComuna || "");
+    } catch {
+      setComunasDisp([]);
+      setComuna("");
+    }
+  }
+
   function elegirDireccion(id: string) {
     setDirSeleccionada(id);
     if (id === "nueva") {
@@ -140,7 +163,7 @@ export default function CheckoutCliente() {
       return;
     }
     const d = direcciones.find((x) => x.id === id);
-    if (d) { setDireccion(d.calle); setCiudad(d.ciudad); setRegion(d.region); setComuna(d.comuna || ""); setOpcionesEnvio([]); setEnvioElegido(null); }
+    if (d) { setDireccion(d.calle); setCiudad(d.ciudad); aplicarRegionComuna(d.region, d.comuna || ""); }
   }
 
   async function aplicarCodigo() {
@@ -184,6 +207,37 @@ export default function CheckoutCliente() {
   const totalTrasDescuento = Math.max(0, total - montoDescuento);
   const maxPuntos = Math.min(saldoPuntos ?? 0, totalTrasDescuento);
   const puntosNum = Math.min(Math.max(0, Number(puntosAUsar) || 0), maxPuntos);
+  useEffect(() => {
+    api<{ codigo: string; nombre: string }[]>("/shipping/regiones")
+      .then(setRegiones)
+      .catch(() => {});
+  }, []);
+
+  // Cuando las regiones ya cargaron y hay una comuna pendiente (de la direccion principal),
+  // aplicarla ahora que si podemos resolver el codigo de region.
+  useEffect(() => {
+    if (pendienteComuna && regiones.length > 0) {
+      aplicarRegionComuna(pendienteComuna.region, pendienteComuna.comuna);
+      setPendienteComuna(null);
+    }
+  }, [pendienteComuna, regiones]);
+
+  async function cargarComunasDeRegion(codigo: string, nombreRegion: string) {
+    setRegionCodigo(codigo);
+    setRegion(nombreRegion);
+    setComuna("");
+    setComunasDisp([]);
+    setOpcionesEnvio([]);
+    setEnvioElegido(null);
+    if (!codigo) return;
+    try {
+      const cs = await api<{ codigo: string; nombre: string }[]>(`/shipping/comunas?region=${codigo}`);
+      setComunasDisp(cs);
+    } catch {
+      setComunasDisp([]);
+    }
+  }
+
   async function cotizarEnvio() {
     if (!comuna.trim()) {
       setErrorEnvio("Ingresa tu comuna");
@@ -380,11 +434,17 @@ export default function CheckoutCliente() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Región</label>
-                    <input value={region} onChange={(e) => setRegion(e.target.value)} placeholder="Región" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm" />
+                    <select value={regionCodigo} onChange={(e) => { const r = regiones.find((x) => x.codigo === e.target.value); cargarComunasDeRegion(e.target.value, r?.nombre || ""); }} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white">
+                      <option value="">Selecciona region</option>
+                      {regiones.map((r) => <option key={r.codigo} value={r.codigo}>{r.nombre}</option>)}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Comuna</label>
-                    <input value={comuna} onChange={(e) => { setComuna(e.target.value); setOpcionesEnvio([]); setEnvioElegido(null); }} placeholder="Ej: Providencia" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm" />
+                    <select value={comuna} onChange={(e) => { setComuna(e.target.value); setOpcionesEnvio([]); setEnvioElegido(null); }} disabled={comunasDisp.length === 0} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white disabled:opacity-50">
+                      <option value="">{comunasDisp.length === 0 ? "Elige region primero" : "Selecciona comuna"}</option>
+                      {comunasDisp.map((c) => <option key={c.codigo} value={c.nombre}>{c.nombre}</option>)}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>

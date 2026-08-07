@@ -6,6 +6,18 @@ export class ShippingController {
   constructor(private readonly shipping: ShippingService) {}
 
   // Prueba: traduce una comuna a su codigo. GET /shipping/comuna?nombre=Providencia
+  // Lista de regiones. GET /shipping/regiones
+  @Get('regiones')
+  regiones() {
+    return this.shipping.regiones();
+  }
+
+  // Comunas de una region. GET /shipping/comunas?region=R13
+  @Get('comunas')
+  comunas(@Query('region') region: string) {
+    return this.shipping.comunasPorRegion(region ?? '');
+  }
+
   @Get('comuna')
   async comuna(@Query('nombre') nombre: string) {
     const codigo = await this.shipping.codigoComuna(nombre ?? '');
