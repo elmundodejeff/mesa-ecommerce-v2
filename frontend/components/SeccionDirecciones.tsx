@@ -53,8 +53,8 @@ export default function SeccionDirecciones() {
 
   async function agregar() {
     setError("");
-    if (!nueva.alias || !nueva.calle || !nueva.ciudad || !nueva.region) {
-      setError("Completa alias, calle, ciudad y region");
+    if (!nueva.alias || !nueva.calle || !nueva.ciudad || !nueva.region || !nueva.comuna) {
+      setError("Completa alias, calle, ciudad, region y comuna");
       return;
     }
     setCargando(true);

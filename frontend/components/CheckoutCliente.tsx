@@ -140,19 +140,30 @@ export default function CheckoutCliente() {
   // Aplica region + comuna de una direccion guardada: resuelve el codigo de region,
   // carga sus comunas, y recien ahi setea la comuna (para que el select la encuentre).
   async function aplicarRegionComuna(nombreRegion: string, nombreComuna: string) {
-    setRegion(nombreRegion);
+    // Reset total: al cambiar de direccion nunca debe quedar la region/comuna anterior.
     setOpcionesEnvio([]);
     setEnvioElegido(null);
-    const r = regiones.find((x) => x.nombre === nombreRegion);
-    if (!r) { setComuna(""); setComunasDisp([]); return; }
+    setComuna("");
+    setComunasDisp([]);
+    setRegionCodigo("");
+
+    const r = nombreRegion ? regiones.find((x) => x.nombre === nombreRegion) : null;
+    if (!r) {
+      // Direccion sin region valida: dropdowns quedan vacios, el cliente debe elegir.
+      setRegion("");
+      return;
+    }
+    setRegion(nombreRegion);
     setRegionCodigo(r.codigo);
     try {
       const cs = await api<{ codigo: string; nombre: string }[]>(`/shipping/comunas?region=${r.codigo}`);
       setComunasDisp(cs);
-      setComuna(nombreComuna || "");
+      // Solo setear la comuna si existe en la lista (evita valores fantasma).
+      if (nombreComuna && cs.some((c) => c.nombre === nombreComuna)) {
+        setComuna(nombreComuna);
+      }
     } catch {
       setComunasDisp([]);
-      setComuna("");
     }
   }
 
