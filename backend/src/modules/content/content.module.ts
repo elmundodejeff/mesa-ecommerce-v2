@@ -6,9 +6,10 @@ import { BannerRepository } from './repositories/banner.repository';
 import { MenuRepository } from './repositories/menu.repository';
 import { AvatarRepository } from './repositories/avatar.repository';
 import { StorageModule } from '../../platform/storage/storage.module';
+import { ShippingModule } from '../shipping/shipping.module';
 
 @Module({
-  imports: [StorageModule],
+  imports: [StorageModule, ShippingModule],
   controllers: [ContentController],
   providers: [
     ContentService,

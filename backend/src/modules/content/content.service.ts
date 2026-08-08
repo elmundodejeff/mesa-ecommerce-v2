@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { ConfigRepository } from './repositories/config.repository';
 import { BannerRepository } from './repositories/banner.repository';
 import { MenuRepository } from './repositories/menu.repository';
 import { AvatarRepository } from './repositories/avatar.repository';
 import { UpdateConfigDto } from './dto/update-config.dto';
+import { ShippingService } from '../shipping/shipping.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
 import { CreateMenuDto } from './dto/create-menu.dto';
@@ -17,6 +18,7 @@ export class ContentService {
     private readonly banner: BannerRepository,
     private readonly menu: MenuRepository,
     private readonly avatar: AvatarRepository,
+    private readonly shipping: ShippingService,
   ) {}
 
   // --- Config (singleton) ---
@@ -24,7 +26,16 @@ export class ContentService {
     return this.config.obtener();
   }
 
-  actualizarConfig(dto: UpdateConfigDto) {
+  async actualizarConfig(dto: UpdateConfigDto) {
+    // Si cambian la comuna de origen, validar que exista en Chilexpress.
+    if (dto.envioComunaOrigen) {
+      const codigo = await this.shipping.codigoComuna(dto.envioComunaOrigen);
+      if (!codigo) {
+        throw new BadRequestException(
+          `La comuna de origen "${dto.envioComunaOrigen}" no tiene cobertura en Chilexpress. Revisa el nombre.`,
+        );
+      }
+    }
     return this.config.actualizar(dto as Prisma.ConfigUpdateInput);
   }
 

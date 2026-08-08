@@ -5,7 +5,7 @@ export class CreateDireccionDto {
   @IsString() @MinLength(1) calle: string;
   @IsString() @MinLength(1) ciudad: string;
   @IsString() @MinLength(1) region: string;
-  @IsOptional() @IsString() comuna?: string;
+  @IsString() @MinLength(1) comuna: string;
   @IsOptional() @IsBoolean() esPrincipal?: boolean;
 }
 
