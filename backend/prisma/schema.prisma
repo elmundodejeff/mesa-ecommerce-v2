@@ -61,6 +61,7 @@ model Orden {
   fechaExpiracion  DateTime?
   costoEnvio      Int     @default(0)
   servicioEnvio   String?
+  courierEnvio    String  @default("chilexpress")
 }
 
 model OrdenItem {
