@@ -53,6 +53,23 @@ export class OrdersRepository {
   }
 
   async crearOrden(input: CrearOrdenInput) {
+    let costoEnvioPre = 0;
+    let servicioEnvioPre: string | null = null;
+    if (input.servicioEnvioCodigo && input.comunaEnvio) {
+      try {
+        const opciones = await this.shipping.cotizarCarrito(
+          input.items.map((i) => ({ productoId: i.productoId, cantidad: i.cantidad })),
+          input.comunaEnvio,
+        );
+        const elegida = opciones.find((o) => o.codigo === input.servicioEnvioCodigo);
+        if (elegida) {
+          costoEnvioPre = elegida.precio;
+          servicioEnvioPre = elegida.servicio;
+        }
+      } catch {
+        // Cotizacion fallida: orden sin envio.
+      }
+    }
     return this.prisma.$transaction(async (tx) => {
       // 1. Productos
       const ids = input.items.map((i) => i.productoId);
@@ -181,25 +198,10 @@ export class OrdersRepository {
       const expira = new Date();
       expira.setMinutes(expira.getMinutes() + MINUTOS_EXPIRACION);
 
-      // Envio: re-cotizar en backend (no confiar en precio del cliente).
-      let costoEnvio = 0;
-      let servicioEnvio: string | null = null;
-      if (input.servicioEnvioCodigo && input.comunaEnvio) {
-        try {
-          const opciones = await this.shipping.cotizarCarrito(
-            input.items.map((i) => ({ productoId: i.productoId, cantidad: i.cantidad })),
-            input.comunaEnvio,
-          );
-          const elegida = opciones.find((o) => o.codigo === input.servicioEnvioCodigo);
-          if (elegida) {
-            costoEnvio = elegida.precio;
-            servicioEnvio = elegida.servicio;
-            total += costoEnvio;
-          }
-        } catch {
-          // Si falla la cotizacion, la orden se crea sin envio.
-        }
-      }
+      // Envio: usar el costo ya cotizado antes de la transaccion.
+      const costoEnvio = costoEnvioPre;
+      const servicioEnvio = servicioEnvioPre;
+      total += costoEnvio;
 
       const orden = await tx.orden.create({
         data: {

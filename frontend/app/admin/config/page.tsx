@@ -201,12 +201,7 @@ export default function AdminConfig() {
           <Campo label="Dirección">
             <input value={config.contactoDireccion || ""} onChange={(e) => set("contactoDireccion", e.target.value)} className="admin-input" />
           </Campo>
-          <Campo label="Comuna de origen (envíos)">
-            <input value={config.envioComunaOrigen || ""} onChange={(e) => set("envioComunaOrigen", e.target.value)} placeholder="Providencia" className="admin-input" />
-          </Campo>
-          <Campo label="Dirección de despacho (envíos)">
-            <input value={config.envioDireccionOrigen || ""} onChange={(e) => set("envioDireccionOrigen", e.target.value)} placeholder="Metro Tobalaba, Providencia" className="admin-input" />
-          </Campo>
+
           <Campo label="Horario">
             <input value={config.contactoHorario || ""} onChange={(e) => set("contactoHorario", e.target.value)} className="admin-input" />
           </Campo>
@@ -215,6 +210,17 @@ export default function AdminConfig() {
           </Campo>
           <Campo label="TikTok">
             <input value={config.contactoTiktok || ""} onChange={(e) => set("contactoTiktok", e.target.value)} className="admin-input" />
+          </Campo>
+        </div>
+      </Seccion>
+
+      <Seccion titulo="Envíos" subtitulo="Origen de despacho para cotizar con Chilexpress">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Campo label="Comuna de origen">
+            <input value={config.envioComunaOrigen || ""} onChange={(e) => set("envioComunaOrigen", e.target.value)} placeholder="Providencia" className="admin-input" />
+          </Campo>
+          <Campo label="Dirección de despacho">
+            <input value={config.envioDireccionOrigen || ""} onChange={(e) => set("envioDireccionOrigen", e.target.value)} placeholder="Metro Tobalaba, Providencia" className="admin-input" />
           </Campo>
         </div>
       </Seccion>
