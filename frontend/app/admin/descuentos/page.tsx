@@ -183,7 +183,7 @@ export default function AdminDescuentos() {
 
       <div className="admin-card p-0 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="admin-tabla">
+          <table className="admin-tabla hidden md:table">
             <thead>
               <tr>
                 <th className="pl-6">Código</th>
@@ -229,6 +229,45 @@ export default function AdminDescuentos() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Cards moviles */}
+        <div className="md:hidden divide-y divide-gray-100">
+          {items.map((d) => (
+            <div key={d.id} className="p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-gray-800">{d.codigo}</span>
+                <button onClick={() => eliminar(d.id)} className="link-peligro">Eliminar</button>
+              </div>
+              <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
+                <dt className="text-gray-400">Tipo</dt>
+                <dd className="text-gray-700 text-right">{d.tipo}</dd>
+                <dt className="text-gray-400">Valor</dt>
+                <dd className="text-gray-700 text-right">
+                  {d.tipo === "porcentaje"
+                    ? `${d.valor}%`
+                    : `$${d.valor.toLocaleString("es-CL")}`}
+                </dd>
+                <dt className="text-gray-400">Vigencia</dt>
+                <dd className="text-gray-700 text-right">{new Date(d.vigencia).toLocaleDateString("es-CL")}</dd>
+                <dt className="text-gray-400">Usos</dt>
+                <dd className="text-gray-700 text-right">{d.usos}{d.maxUsos ? `/${d.maxUsos}` : ""}</dd>
+                <dt className="text-gray-400">Por usuario</dt>
+                <dd className="text-gray-700 text-right">{d.maxUsosPorUsuario ? `${d.maxUsosPorUsuario}x` : "-"}</dd>
+                <dt className="text-gray-400">Asignado a</dt>
+                <dd className="text-right">
+                  {d.userId ? (
+                    <span className="admin-badge">{nombreUsuario(d.userId)}</span>
+                  ) : (
+                    <span className="text-gray-400">Todos</span>
+                  )}
+                </dd>
+              </dl>
+            </div>
+          ))}
+          {items.length === 0 && (
+            <p className="p-4 text-gray-400 text-sm">Sin codigos.</p>
+          )}
         </div>
       </div>
     </>
